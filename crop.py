@@ -6,6 +6,15 @@ def crop(file, newfile, perW, perH):
     img=fits.open(file)
     header=img[0].header
     img_data=img[0].data
+
+    # print(repr(header))
+    # print(header["SIMPLE"])
+
+    if header["SIMPLE"] == False: #File does conform to FITS standard
+        print("File {} does not conform to FITS standard. Corrupted file?".format(file))
+        img.close()
+        return
+
     height,width=img_data.shape
     position=(width//2,height//2)
     #size=(int(width*perW)+height//2,int(height*perH)+height//2)

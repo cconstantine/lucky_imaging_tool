@@ -1,20 +1,8 @@
 import glob,os
-import cv2
-import math
 from astropy.nddata import Cutout2D
-from astropy import units as u
 from astropy.io import fits
-import pyfits
-import numpy as np
-from PIL import Image
-path="H:\MyWorkPythonAll"
-newpath=path+"\\"+"CroppedGoodImages"
-perH=0.7
-perW=0.7
-os.chdir(path)
-if not os.path.exists(newpath):
-    os.makedirs(newpath)
-for file in glob.glob("*.fits"):
+
+def crop(file, newfile, perW, perH):
     img=fits.open(file)
     header=img[0].header
     img_data=img[0].data
@@ -25,11 +13,16 @@ for file in glob.glob("*.fits"):
     print("Cropping ", file)
     cutout=Cutout2D(img_data,position,size)
     #print(cutout.data)
-    file2=file
     img.close() #release the file so we can delete it
-    file2=file2.split(".fits")
-    file2[0]=file2[0]+"goodimg"
-    file2=file2[0]+".fits"
-    os.chdir(newpath)
-    fits.writeto(file2,cutout.data,header,overwrite=True)
-    os.chdir(path)
+    fits.writeto(newfile,cutout.data,header,overwrite=True)
+
+if __name__ == "__main__":
+    path="H:\MyWorkPythonAll"
+    newpath=os.path.join(path,"CroppedGoodImages")
+    
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)
+    
+    for file in glob.glob(os.path.join(path,"*.fits")):
+        file2 = os.path.join(newpath, os.path.basename(file))
+        crop(file, file2, 0.7, 0.7)

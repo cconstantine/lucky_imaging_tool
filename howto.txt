@@ -1,0 +1,26 @@
+To execute the raw python file follow the steps below: 
+
+In order to execute the script you must download Anaconda, found here: https://www.anaconda.com/ 
+
+Once downloaded, please open cmd (command line) and type the following: 
+
+pip install psutil 
+
+pip install glob
+
+pip install os
+
+pip install astropy 
+
+pip install numpy
+
+pip install PIL 
+
+then: go to the directory the code is downloaded, in the cmd line type "cd path" ex: "cd H:\MyWorkPythonAll" 
+then type, python3 monitorNINA.py and hit enter
+
+possible errors: 
+
+"Module not found (modulename)" 
+
+to fix this just do pip install modulename

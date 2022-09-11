@@ -91,7 +91,7 @@ def fwhm_from_filename(filename):
 def test_args():
     return float(0.7), float(0.7), str("C:\\Users\\Thomas\\Downloads\\lucky_imaging_tool\\MyWorkPythonAll"), float(10), str("n"), 
 
-test=True
+test=False
 def init():
     # Parse arguments
     perW, perH, path, FWHMthresh, del_uncrop = None, None, None, None, None

@@ -2,7 +2,7 @@ To execute the raw python file follow the steps below:
 
 In order to execute the script you must download Anaconda, found here: https://www.anaconda.com/ 
 
-Once downloaded, please open cmd (command line) and type the following: 
+Once downloaded, please open cmd (windows) (command line) and type the following: 
 
 pip install psutil 
 

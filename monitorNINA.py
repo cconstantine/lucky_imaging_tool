@@ -41,7 +41,9 @@ while(True):#monitors if NINA is open
             else:
                 if(perW!=1 and perH!=1):
                     #This would be more efficient if it didn't keep cropping already cropped files.
+                    time.sleep(3)
                     img=fits.open(file)
+                    header=img[0].header
                     img_data=img[0].data
                     height,width=img_data.shape
                     position=(width//2,height//2)
@@ -56,7 +58,7 @@ while(True):#monitors if NINA is open
                     file2[0]=file2[0]+"goodimg"
                     file2=file2[0]+".fits"
                     os.chdir(newpath)
-                    fits.writeto(file2,cutout.data,overwrite=True)
+                    fits.writeto(file2,cutout.data,header,overwrite=True)
                     os.chdir(path)
                     if (del_uncrop[0]=="y"):
                         print("Image cropped, original deleted ",file)  #Indicates file being deleted

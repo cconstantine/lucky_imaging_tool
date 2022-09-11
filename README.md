@@ -4,15 +4,9 @@ In order to execute the script you must download Anaconda, found here: https://w
 
 Once downloaded, please open cmd (windows) (command line) and type the following: 
 
-pip install psutil 
-
-pip install glob
-
-pip install os
-
-pip install astropy 
-
-pip install numpy
+``` sh
+pip install -r requirements.txt
+```
 
 then: go to the directory the code is downloaded, in the cmd line type "cd path" ex: "cd H:\MyWorkPythonAll" 
 then type, python3 monitorNINA.py and hit enter

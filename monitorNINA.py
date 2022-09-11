@@ -5,6 +5,7 @@ from astropy import units as u
 from astropy.io import fits
 import numpy as np
 import time
+from datetime import datetime, timedelta
 # from . import crop
 from crop import crop
 
@@ -19,18 +20,17 @@ def handle_file(file, newpath, del_uncrop, FWHMthresh, perW, perH):
     else:
         file2 = os.path.join(newpath, os.path.basename(file))
         if(perW!=1 and perH!=1):
-            time.sleep(3)
-            crop(file, file2, perW, perH)
-
-            if (del_uncrop[0]=="y"):
-                print("Image cropped, original deleted ",file)  #Indicates file being deleted
-                os.remove(file)
-        else:
-            os.rename(file, file2)
-
-
-
-def main(): 
+            timcr=os.path.getmtime(file)
+            timenow=time.time()
+            delta=abs(timcr-timenow)
+            if(delta>15):
+                crop(file, file2, perW, perH)
+                if (del_uncrop[0]=="y"):
+                    print("Image cropped, original deleted ",file)  #Indicates file being deleted
+                    os.remove(file)
+                else:
+                    os.rename(file, file2)
+def main():
     print("This script will automatically delete image files if they exceed a certain full width half maximum")
     print("It runs as long as nina is open, and stops monitoring once NINA is closed")
     print("In NINA under options, find image file pattern.  Add '\$$FWHM$$pixels' at the start of the filename")

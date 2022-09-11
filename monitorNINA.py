@@ -4,6 +4,7 @@ from astropy.nddata import Cutout2D
 from astropy import units as u
 from astropy.io import fits
 import numpy as np
+import time
 
 print("This script will automatically delete image files if they exceed a certain full width half maximum")
 print("It runs as long as nina is open, and stops monitoring once NINA is closed")
@@ -28,6 +29,7 @@ newpath=path+"\\"+"CroppedGoodImages"
 if not os.path.exists(newpath):
     os.makedirs(newpath)
 while(True):#monitors if NINA is open
+    time.sleep(0.1)
     print("NINA status, true if open, false if closed")
     print("NINA.exe" in (i.name() for i in psutil.process_iter()))#prints true if nina is open, false if not
     while("NINA.exe" in (i.name() for i in psutil.process_iter())): #Activates monitoring while nina is open

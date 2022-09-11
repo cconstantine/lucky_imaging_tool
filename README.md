@@ -1,6 +1,6 @@
 To execute the raw python file follow the steps below: 
 
-NOTE: Difference between MonitorNINA.py and LITforNINAusers.py -- MonitorNINA does not need NINA to be open and running to execute, LITforNINAusers needs NINA to execute and will stop running after NINA is closed.
+NOTE: Difference between MonitorNINA.py and LITforNINAusers.py -- MonitorNINA does not need NINA to be open and running to execute, LITforNINAusers needs NINA to execute and will stop running after NINA is closed. LIT Release 1 uses LITforNINA.py
 
 In order to execute the script you must download Anaconda, found here: https://www.anaconda.com/ 
 

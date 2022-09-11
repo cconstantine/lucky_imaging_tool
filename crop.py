@@ -6,7 +6,7 @@ from astropy import units as u
 from astropy.io import fits
 import pyfits
 import numpy as np
-from PIL import Image
+
 path="H:\MyWorkPythonAll"
 newpath=path+"\\"+"CroppedGoodImages"
 os.chdir(path)

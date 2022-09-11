@@ -1,3 +1,5 @@
+LIT Lucky Imaging Tool monitors your filepath as you image, it looks at the filename, which NINA can write the FWHM to. If the FWHM is above a certain threshold, then the file is removed. Along with that you have the ability to crop you can remove a percentage of the width and height, useful for maintaining low file size. 
+
 To execute the raw python file follow the steps below: 
 
 NOTE: Difference between MonitorNINA.py and LITforNINAusers.py -- MonitorNINA does not need NINA to be open and running to execute, LITforNINAusers needs NINA to execute and will stop running after NINA is closed. LIT Release 1 uses LITforNINA.py

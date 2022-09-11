@@ -4,7 +4,6 @@ from astropy.nddata import Cutout2D
 from astropy import units as u
 from astropy.io import fits
 import numpy as np
-from PIL import Image
 
 print("This script will automatically delete image files if they exceed a certain full width half maximum")
 print("It runs as long as nina is open, and stops monitoring once NINA is closed")

@@ -90,10 +90,10 @@ def extract_objects(data, detection_threshold, background_rms_error):
     return sep.extract(data, detection_threshold, err=background_rms_error)
 
 # Openb a file to use
-data=fits.open("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits")
+f_data=fits.open("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits")
 
 # Get reference to image data from FITS as numpyarray.
-data=data[0].data
+data=f_data[0].data
 
 # Convert to 32 bit integer
 data=np.array(data,dtype='int')
@@ -111,7 +111,7 @@ detection_threshold, objects_detected = determine_detection_threshold(data, bkg.
 objects = extract_objects(data, detection_threshold, bkg.globalrms)
 
 # Close fits image as we no longer need it.
-fits.close()
+f_data.close()
 
 # print(objects)
 print("Amount of objects found: {}".format(len(objects)))

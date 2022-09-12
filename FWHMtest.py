@@ -20,7 +20,7 @@ bkg = sep.Background(data)
 # Subtract the background from an existing array. Like data = data - bkg, but avoids making a copy of the data.
 bkg.subfrom(data)
 
-objects = sep.extract(data_sub, 25, err=bkg.globalrms)
+objects = sep.extract(data, 25, err=bkg.globalrms)
 print(len(objects))
 FWHM=[]
 #2*sqrt((ln(2)))

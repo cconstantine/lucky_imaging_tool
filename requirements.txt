@@ -5,3 +5,5 @@ psutil==5.9.2
 pyerfa==2.0.0.1
 pyparsing==3.0.9
 PyYAML==6.0
+sep==1.2.1
+matplotlib==3.5.3

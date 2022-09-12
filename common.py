@@ -85,7 +85,6 @@ def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWH
                     os.rename(original, moved_original_file)
 
 def fwhm_from_filename(filename):
-    return float(5)
     return float(os.path.basename(filename).split("pixels")[0])
 
 def test_args():

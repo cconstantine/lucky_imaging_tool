@@ -18,7 +18,7 @@ data=np.array(data,dtype='int')
 bkg = sep.Background(data)
 
 # Subtract the background from an existing array. Like data = data - bkg, but avoids making a copy of the data.
-bkg.sep.subfrom(data)
+bkg.subfrom(data)
 
 objects = sep.extract(data_sub, 25, err=bkg.globalrms)
 print(len(objects))

@@ -16,10 +16,8 @@ def main():
         time.sleep(0.1)
         print("NINA status, true if open, false if closed")
         print("NINA.exe running: {}".format("NINA.exe" in (i.name() for i in psutil.process_iter())))#prints true if nina is open, false if not
-        # while("NINA.exe" in (i.name() for i in psutil.process_iter())): #Activates monitoring while nina is open
-        while(True): #Activates monitoring while nina is open
+        while("NINA.exe" in (i.name() for i in psutil.process_iter())): #Activates monitoring while nina is open
             print("Monitoring filepath...") #Just an indicator that monitoring is active
-
             for file in common.get_fits_from_folder(path):
                 if(common.fwhm_from_filename(file) > FWHMthresh): #Checks of the front part of the file before word "pixels" is above the indicated threshold
                     print("High HFR/FWHM detected, deleted {}".format(file))  #Indicates file being deleted

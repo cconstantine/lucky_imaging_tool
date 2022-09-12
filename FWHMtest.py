@@ -4,9 +4,15 @@ import numpy as np
 from math import sqrt
 import matplotlib.pyplot as plt
 import statistics
+
+# Openb a file to use
 data=fits.open("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits")
+
+# Extract the image data from FITS as numpyarray.
 data=data[0].data
-data=np.array(data,dtype='float64')
+
+# Convert to 32 bit integer
+data=np.array(data,dtype='int')
 bkg = sep.Background(data)
 data_sub=data-bkg
 objects = sep.extract(data_sub, 25, err=bkg.globalrms)

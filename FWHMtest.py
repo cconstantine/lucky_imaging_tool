@@ -13,8 +13,13 @@ data=data[0].data
 
 # Convert to 32 bit integer
 data=np.array(data,dtype='int')
+
+# Representation of spatially variable image background and noise.
 bkg = sep.Background(data)
-data_sub=data-bkg
+
+# Subtract the background from an existing array. Like data = data - bkg, but avoids making a copy of the data.
+bkg.sep.subfrom(data)
+
 objects = sep.extract(data_sub, 25, err=bkg.globalrms)
 print(len(objects))
 FWHM=[]

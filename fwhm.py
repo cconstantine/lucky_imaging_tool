@@ -75,7 +75,7 @@ class Calculator:
 	def fwhm(self, filename):
 		f = self.fwhms(filename)
 		if len(f) > 0:
-			return statistics.mean(f)+statistics.stdev(f)
+			return 0.6188*(statistics.mean(f)+statistics.stdev(f))+(0.5301)
 		else:
 			return 0.0
 

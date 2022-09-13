@@ -74,10 +74,14 @@ class Calculator:
 
 	def fwhm(self, filename):
 		f = self.fwhms(filename)
-		return statistics.mean(f)+statistics.stdev(f)
+		if len(f) > 0:
+			return statistics.mean(f)+statistics.stdev(f)
+		else:
+			return 0.0
 
 
 if __name__ == "__main__":
+	calc = Calculator()
 	path = os.path.join("test", "images")
 	print("DSS,FWHM,filename")
 	with open(os.path.join(path, "image_data.csv")) as csvfile:
@@ -88,8 +92,8 @@ if __name__ == "__main__":
 			# 	fwhms(os.path.join(path, row['filename']))
 			# print(timeit.Timer(timed).timeit(number=1))
 
-			results = fwhms(os.path.join(path, row['filename']))
+			result = calc.fwhm(os.path.join(path, row['filename']))
 			# print(timeit.Timer())
-			temp=statistics.mean(results)+statistics.stdev(results)
-			result = (0.6188*temp) + 0.5301 if len(results) > 0 else 0.0
+			# temp=statistics.mean(results)+statistics.stdev(results)
+			# result = (0.6188*temp) + 0.5301 if len(results) > 0 else 0.0
 			print("{:2.5f},{:2.5f},{}".format(float(row['fwhm_pixels']), result, row['filename']))

@@ -4,7 +4,7 @@
 # from math import sqrt
 import matplotlib.pyplot as plt
 import statistics
-from fwhm import fwhm
+from fwhm import Calculator
 
 # fib_n1 = None
 # fib_n2 = None
@@ -118,7 +118,8 @@ from fwhm import fwhm
 # print("Amount of objects found: {}".format(len(objects)))
 
 #### Determine FWHM ####
-FWHM=fwhm("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits")
+
+FWHM=Calculator.fwhms("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits")
 #2*sqrt((ln(2)))
 count=[]
 

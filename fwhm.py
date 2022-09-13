@@ -90,5 +90,6 @@ if __name__ == "__main__":
 
 			results = fwhms(os.path.join(path, row['filename']))
 			# print(timeit.Timer())
-			result = statistics.mean(results)+statistics.stdev(results) if len(results) > 0 else 0.0
+			temp=statistics.mean(results)+statistics.stdev(results)
+			result = (0.6188*temp) + 0.5301 if len(results) > 0 else 0.0
 			print("{:2.5f},{:2.5f},{}".format(float(row['fwhm_pixels']), result, row['filename']))

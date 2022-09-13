@@ -123,9 +123,10 @@ FWHM=calc.fwhms("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits")
 #2*sqrt((ln(2)))
 count=[]
 
-print(statistics.mean(FWHM)+statistics.stdev(FWHM))
+#print(statistics.mean(FWHM)+statistics.stdev(FWHM))
+print(FWHM)
 
-for i in range(len(FWHM)):
-    count.append(i)
-plt.scatter(count,FWHM)
-plt.show()
+#for i in range(len(FWHM)):
+#   count.append(i)
+#plt.scatter(count,FWHM)
+#plt.show()

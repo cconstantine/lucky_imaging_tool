@@ -124,9 +124,7 @@ for i in range(len(objects)):
     thing=(float(objects['a'][i])**2) + (float(objects['b'][i])**2)
     FWHM.append(2 * (sqrt((np.log(2)) * thing)))
 
-print("mean   FWHM {}".format(statistics.median(FWHM)))
-print("median FWHM {}".format(statistics.mean(FWHM)))
-print("sum    FWHM {}".format(sum(FWHM)/len(FWHM)))
+print(statistics.mean(FWHM)+statistics.stdev(FWHM))
 
 for i in range(len(FWHM)):
     count.append(i)

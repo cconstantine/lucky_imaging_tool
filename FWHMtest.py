@@ -118,8 +118,8 @@ from fwhm import Calculator
 # print("Amount of objects found: {}".format(len(objects)))
 
 #### Determine FWHM ####
-
-FWHM=Calculator.fwhms("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits")
+calc = Calculator()
+FWHM=calc.fwhms("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits")
 #2*sqrt((ln(2)))
 count=[]
 

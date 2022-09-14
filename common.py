@@ -20,12 +20,19 @@ def load_config_from_file():
 
 def create_config_from_arguments():
     print("In order to create the config answer the following questions.")
-    data = parse_args()
+    if test:
+        data = test_args()
+    else:
+        data = parse_args()
+
+    data["cropped_folder"] = os.path.join(data["path"], "CroppedGoodImages")
+    data["moved_originals_folder"] = os.path.join(data["path"], "MovedOriginalImages")
 
     print("Saving config to file: {}".format(CONFIG_FILE))
     print(data)
     save_config_to_file(data)
     print("You can rerun this tool any time or manually adapt the config file.")
+    return data
 
 def parse_args():
     print("This script will automatically delete image files if they exceed a certain full width half maximum")
@@ -39,8 +46,7 @@ def parse_args():
     print("e.g. 3.0 arcsecs threshold*1200mm/3.75um/206.25 yields a threshold FWHM in pixels of 4.8 pixels")
     print("HFR is correlated to FWHM but doesn't have a direct conversion.  To use assess the variability of values and select an appropriate threshold")
     FWHMthresh=float(input("Rejection threshold (FWHM in pixels, or HFR in pixels) above which to delete files: "))
-    del_uncrop=str(input("Delete original uncropped images (Y/N):"))
-    del_uncrop=del_uncrop.lower()
+    del_uncrop=str(input("Delete original uncropped images (Y/N):")).lower()
 
     json_result = {
         "perW": perW,
@@ -113,22 +119,23 @@ def test_args():
 test=False
 def init():
     # Parse arguments
-    data = None
-    perW, perH, path, FWHMthresh, del_uncrop = None, None, None, None, None
+    data = load_config_from_file()
 
-    if test:
-        data = test_args()
+    if data != None:
+        use_config=str(input("Use existing config file (Y/N) N means a new one will be created:")).lower()
+        if use_config == "y":
+            print("Reusing config file.")
+        else:
+            data = create_config_from_arguments()
     else:
-        data = parse_args()
-
-    data["cropped_folder"] = os.path.join(data["path"], "CroppedGoodImages")
-    data["moved_originals_folder"] = os.path.join(data["path"], "MovedOriginalImages")
+        print("No config file found.. Creating one.")
+        data = create_config_from_arguments()
 
     # Create destination folder for cropped images.
     print("Cropped: {}".format(data["cropped_folder"]))
     create_folder(data["cropped_folder"])
 
-    if del_uncrop:
+    if data["del_uncrop"]:
         create_folder(data["moved_originals_folder"])
 
     # Return parsed arguments.

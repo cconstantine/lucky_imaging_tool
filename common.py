@@ -2,6 +2,7 @@ import glob,os,sys
 import time
 import crop
 from fwhm import Calculator
+import psutil
 
 def parse_args():
     print("This script will automatically delete image files if they exceed a certain full width half maximum")

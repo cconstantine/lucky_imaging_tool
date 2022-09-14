@@ -19,7 +19,13 @@ def main():
         while(True):#monitors if NINA is open
             print("Monitoring filepath...") #Just an indicator that monitoring is active
             for file in common.get_fits_from_folder(data["path"]):
-                pool.apply_async(common.handle_file, (file, data["cropped_folder"], data["moved_originals_folder"], data["del_uncrop"], data["FWHMthresh"], data["perW"], data["perH"]))
+                pool.apply_async(common.handle_file,
+                                (file, data["cropped_folder"],
+                                 data["moved_originals_folder"],
+                                 data["del_uncrop"],
+                                 data["FWHMthresh"],
+                                 data["perW"],
+                                 data["perH"]))
 
             time.sleep(1)
 

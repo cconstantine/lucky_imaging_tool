@@ -1,5 +1,7 @@
 Anything that has FWHM is a WIP, we are trying to develop this independently. Moving away from NINA.
 
+FWHM is no longer a WIP, we have implemented it, now in the testing stage. Once tested we will release as an exe file. 
+
 LIT Lucky Imaging Tool monitors your filepath as you image, it looks at the filename, which NINA can write the FWHM to. If the FWHM is above a certain threshold, then the file is removed. Along with that, you have the ability to crop. You can remove a percentage of the width and height, useful for maintaining low file size. 
 
 To execute the raw python file follow the steps below: 

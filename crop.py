@@ -19,7 +19,6 @@ def crop(file, newfile, perW, perH):
     position=(width//2,height//2)
     #size=(int(width*perW)+height//2,int(height*perH)+height//2)
     size=(int(height*perH),int(width*perW))
-    print("Cropping ", file)
     cutout=Cutout2D(img_data,position,size)
     #print(cutout.data)
     img.close() #release the file so we can delete it

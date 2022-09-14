@@ -9,7 +9,7 @@ import json
 CONFIG_FILE="lucky_imaging.cnf.json"
 def save_config_to_file(data):
     with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
-      f.write(json.dumps(data, ensure_ascii=False))
+      f.write(json.dumps(data, ensure_ascii=False, indent=4))
 
 def load_config_from_file():
     if not os.path.isfile(CONFIG_FILE):

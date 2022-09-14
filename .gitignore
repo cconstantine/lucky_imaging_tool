@@ -1,2 +1,6 @@
 __pycache__
 venv
+build/
+dist/
+lucky_imaging.cnf.json
+*.spec

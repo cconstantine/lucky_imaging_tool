@@ -3,6 +3,7 @@ import time
 import crop
 from fwhm import Calculator
 import psutil
+import shutil
 
 def parse_args():
     print("This script will automatically delete image files if they exceed a certain full width half maximum")
@@ -34,7 +35,7 @@ def is_file_safe_to_handle(file):
     DELTA = 3 #seconds
     f_time = os.path.getmtime(file)
     now = time.time()
-    if (now - f_time) > DELTA: 
+    if (now - f_time) > DELTA:
         return True
     else:
         return False
@@ -71,15 +72,15 @@ def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWH
             if (del_uncrop[0]=="y"):
                 sys.stdout.write("Deleting original file.")  #Indicates file being deleted
                 os.remove(original)
-            print()
-        else:
-            moved_original_file = os.path.join(moved_orignals_folder, os.path.basename(original))
-            print("Moving to {}".format(moved_orignals_folder))
-            os.rename(original, moved_original_file)
+                print()
+            else:
+                moved_original_file = os.path.join(moved_orignals_folder, os.path.basename(original))
+                print("Moving to {}".format(moved_orignals_folder))
+                os.rename(original, moved_original_file)
 
 
 def test_args():
-    return float(0.7), float(0.7), str("C:\\Users\\Thomas\\Downloads\\lucky_imaging_tool\\MyWorkPythonAll"), float(10), str("n"), 
+    return float(0.7), float(0.7), str("C:\\Users\\Thomas\\Downloads\\lucky_imaging_tool\\MyWorkPythonAll"), float(10), str("n"),
 
 test=False
 def init():

@@ -4,6 +4,28 @@ import crop
 from fwhm import Calculator
 import psutil
 import shutil
+import json
+
+CONFIG_FILE="lucky_imaging.cnf.json"
+def save_config_to_file(data):
+    with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+      f.write(json.dumps(data, ensure_ascii=False))
+
+def load_config_from_file():
+    if not os.path.isfile(CONFIG_FILE):
+        return None
+
+    with open(CONFIG_FILE) as f:
+        return json.load(f)
+
+def create_config_from_arguments():
+    print("In order to create the config answer the following questions.")
+    data = parse_args()
+
+    print("Saving config to file: {}".format(CONFIG_FILE))
+    print(data)
+    save_config_to_file(data)
+    print("You can rerun this tool any time or manually adapt the config file.")
 
 def parse_args():
     print("This script will automatically delete image files if they exceed a certain full width half maximum")
@@ -20,9 +42,15 @@ def parse_args():
     del_uncrop=str(input("Delete original uncropped images (Y/N):"))
     del_uncrop=del_uncrop.lower()
 
-    newpath=os.path.join(path, "CroppedGoodImages")
+    json_result = {
+        "perW": perW,
+        "perH": perH,
+        "path": path,
+        "FWHMthresh": FWHMthresh,
+        "del_uncrop": del_uncrop
+    }
 
-    return perW, perH, path, FWHMthresh, del_uncrop
+    return json_result
 
 def create_folder(path):
     if not os.path.exists(path):
@@ -85,21 +113,23 @@ def test_args():
 test=False
 def init():
     # Parse arguments
+    data = None
     perW, perH, path, FWHMthresh, del_uncrop = None, None, None, None, None
 
     if test:
-        perW, perH, path, FWHMthresh, del_uncrop = test_args()
+        data = test_args()
     else:
-        perW, perH, path, FWHMthresh, del_uncrop = parse_args()
+        data = parse_args()
+
+    data["cropped_folder"] = os.path.join(data["path"], "CroppedGoodImages")
+    data["moved_originals_folder"] = os.path.join(data["path"], "MovedOriginalImages")
 
     # Create destination folder for cropped images.
-    cropped_folder=os.path.join(path, "CroppedGoodImages")
-    print("Cropped: {}".format(cropped_folder))
-    create_folder(cropped_folder)
+    print("Cropped: {}".format(data["cropped_folder"]))
+    create_folder(data["cropped_folder"])
 
-    moved_originals_folder=os.path.join(path, "MovedOriginalImages")
     if del_uncrop:
-        create_folder(moved_originals_folder)
+        create_folder(data["moved_originals_folder"])
 
     # Return parsed arguments.
-    return perW, perH, path, FWHMthresh, del_uncrop, cropped_folder, moved_originals_folder
+    return data

@@ -12,15 +12,15 @@ import common
 from multiprocessing import Pool, cpu_count
 
 def main():
-    perW, perH, path, FWHMthresh, del_uncrop, cropped_folder, moved_orignals_folder = common.init()
+    data = common.init()
     common.set_process_priority()
     
     with Pool(processes=cpu_count()) as pool:
-        print("Monitoring ", os.path.abspath(path)) #Just an indicator that monitoring is active
+        print("Monitoring ", os.path.abspath(data["path"])) #Just an indicator that monitoring is active
         while(True):#monitors if NINA is open
             print("Monitoring filepath...") #Just an indicator that monitoring is active
-            for file in common.get_fits_from_folder(path):
-                pool.apply_async(common.handle_file, (file, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH))
+            for file in common.get_fits_from_folder(data["path"]):
+                pool.apply_async(common.handle_file, (file, data["cropped_folder"], data["moved_orignals_folder"], data["del_uncrop"], data["FWHMthresh"], data["perW"], data["perH"]))
 
             time.sleep(1)
 

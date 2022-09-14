@@ -118,6 +118,8 @@ def test_args():
 
 test=False
 def init():
+    common.set_process_priority()
+    
     # Parse arguments
     data = load_config_from_file()
 

@@ -13,7 +13,6 @@ from multiprocessing import Pool, cpu_count
 
 def main():
     data = common.init()
-    common.set_process_priority()
     
     with Pool(processes=cpu_count()) as pool:
         print("Monitoring ", os.path.abspath(data["path"])) #Just an indicator that monitoring is active

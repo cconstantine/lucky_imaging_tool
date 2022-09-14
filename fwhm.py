@@ -41,19 +41,19 @@ class Calculator:
 		f_data=fits.open(filename)
 
 		# Get reference to image data from FITS as numpyarray.
-		data=f_data[0].data
+		datafwhm=f_data[0].data
 
 		# Convert to 32 bit integer
-		data=np.array(data,dtype='int32')
+		datafwhm=np.array(data,dtype='int32')
 
 		# Representation of spatially variable image background and noise.
-		bkg = sep.Background(data)
+		bkg = sep.Background(datafwhm)
 
 		# Subtract the background from an existing array. Like data = data - bkg, but avoids making a copy of the data.
-		bkg.subfrom(data)
+		bkg.subfrom(datafwhm)
 
 		def search_func(threshold):
-			objects = sep.extract(data, threshold, err=bkg.globalrms)
+			objects = sep.extract(datafwhm, threshold, err=bkg.globalrms)
 			return len(objects), objects
 
 		objects = self.binary_search(search_func, 100, 10)

@@ -22,18 +22,18 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGINT, handler)
 
-def backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder):
+def backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file):
     # Remove files where fwhm is too high or if user has specified the original to be deleted after cropping
-    if fwhm_above_threshold or (do_crop and (del_uncrop[0] == 'y')):
+    if is_fits_file and (fwhm_above_threshold or (do_crop and (del_uncrop[0] == 'y'))):
         os.remove(original)
     else:
-        #Backup original uncropped file.
+        #Backup original uncropped file or files which are not a fits file.
         common.backup_file(original, moved_orignals_folder)
 
 # Called before pool._cache is empty
 def callback(*args):
-    original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder = args[0]
-    backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder)
+    original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file = args[0]
+    backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file)
 
 
 def main():

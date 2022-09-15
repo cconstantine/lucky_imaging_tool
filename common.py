@@ -120,6 +120,8 @@ def backup_file(file, destination_folder):
     print("Moving to {}".format(destination_folder))
     os.rename(file, moved_file)
 
+def is_file_a_fits_file(fitsheader):
+    return fitsheader["SIMPLE"] #Boolean answer.
 
 # This file is called by multithreading threads/procs, any prints/exceptions will only be printed from a try catch.
 def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH):
@@ -135,16 +137,19 @@ def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWH
 
         print("File: {}".format(original))
         fwhm_above_threshold = False
+
         with fits.open(original) as f_fits:
+            is_fits_file = is_file_a_fits_file(f_fits[0].header)
 
-            #Calculate fwhm
-            fwhm = calculate_fwhm(f_fits[0].data, FWHMthresh)
+            if is_fits_file:
+                #Calculate fwhm
+                fwhm = calculate_fwhm(f_fits[0].data, FWHMthresh)
 
-            # Crop image is cropping parameters are set (unset is equal to original) and fwhm is OK
-            if(do_crop and not fwhm_above_threshold):
-                crop_file(original, f_fits[0].data, f_fits[0].header, perW, perH, cropped_folder)
+                # Crop image is cropping parameters are set (unset is equal to original) and fwhm is OK
+                if(do_crop and not fwhm_above_threshold):
+                    crop_file(original, f_fits[0].data, f_fits[0].header, perW, perH, cropped_folder)
 
-        return original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder
+        return original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file
     except Exception as e:
         traceback.print_exc()
 

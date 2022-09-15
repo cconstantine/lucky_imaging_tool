@@ -119,7 +119,11 @@ from fwhm import Calculator
 
 #### Determine FWHM ####
 calc = Calculator()
-FWHM=calc.fwhms("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits")
+
+# Open a file to use
+with fits.open("2022-09-08_22-11-19_L-Extreme_-10.00_300.00s_1x1_0015.fits") as fitsdata:
+	FWHM=calc.fwhms(fitsdata)
+
 #2*sqrt((ln(2)))
 count=[]
 

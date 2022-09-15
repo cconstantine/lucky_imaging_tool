@@ -5,6 +5,9 @@ from fwhm import Calculator
 import psutil
 import shutil
 import json
+from astropy.io import fits
+import traceback
+import gc
 
 CONFIG_FILE="lucky_imaging.cnf.json"
 def save_config_to_file(data):
@@ -88,30 +91,62 @@ def set_process_priority():
         # Set cpu execution priority
         PID.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
 
-def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH):
-    if is_file_safe_to_handle(original) == False:
-        return #Skip it
-    fwhm = Calculator().fwhm(original)
-    sys.stdout.write("{} fwhm: ".format(original))
-    sys.stdout.write("{:2.5f}.  ".format(fwhm, original))
-    if(fwhm>FWHMthresh):
-        if (del_uncrop[0]=="y"):
-            print("Above threshold of {:2.5f} detected, deleting.".format(FWHMthresh))  #Indicates file being deleted
-            os.remove(original)   #Removes the offending file
-    else:
-        if(perW!=1 and perH!=1):
-            cropped_file = os.path.join(cropped_folder, os.path.basename(original))
-            sys.stdout.write("Cropping to {}.  ".format(cropped_folder))
-            crop.crop(original, cropped_file, perW, perH)
-            if (del_uncrop[0]=="y"):
-                sys.stdout.write("Deleting original file.")  #Indicates file being deleted
-                os.remove(original)
-                print()
-            else:
-                moved_original_file = os.path.join(moved_orignals_folder, os.path.basename(original))
-                print("Moving to {}".format(moved_orignals_folder))
-                os.rename(original, moved_original_file)
+def calculate_fwhm(data, FWHMthresh):
+    # Use calculator to get fwhm from image.
+    fwhm = Calculator().fwhm(data)
+    print("fwhm: {:2.5f}".format(fwhm))
 
+    # If the fwhm is above the threshold it shall be removed.
+    fwhm_above_threshold = fwhm > FWHMthresh
+    if fwhm_above_threshold:
+        print("{} fwhm {:2.5f} > threshold {:2.5f}".format(fwhm, FWHMthresh))
+
+    return fwhm
+
+def crop_file(file, fits_data, fits_header, perW, perH, destination_folder):
+    # Where to store the cropped file.
+    cropped_fits_file = os.path.join(destination_folder, os.path.basename(file))
+    print("Cropping to {}.  ".format(destination_folder))
+
+    # Crop file.
+    cropped_fitsdata = crop.crop(fits_data, perW, perH)
+
+    # Save cropped image.
+    fits.writeto(cropped_fits_file, cropped_fitsdata, fits_header, overwrite=True)
+
+def backup_file(file, destination_folder):
+    # Move original to backup location. Required so that script does not rehandle the same file.
+    moved_file = os.path.join(destination_folder, os.path.basename(file))
+    print("Moving to {}".format(destination_folder))
+    os.rename(file, moved_file)
+
+
+# This file is called by multithreading threads/procs, any prints/exceptions will only be printed from a try catch.
+def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH):
+    try:
+        # If the cropping percentage differs from the original, crop it.
+        # 1 equals original size, so no cropping shall occur.
+        do_crop = (perW != 1 or perH != 1)
+
+        # After a capture the file might still be in use. This ensures that the file has been written fully.
+        if is_file_safe_to_handle(original) == False:
+            print("Skipping unsafe file")
+            return #Skip it
+
+        print("File: {}".format(original))
+        fwhm_above_threshold = False
+        with fits.open(original) as f_fits:
+
+            #Calculate fwhm
+            fwhm = calculate_fwhm(f_fits[0].data, FWHMthresh)
+
+            # Crop image is cropping parameters are set (unset is equal to original) and fwhm is OK
+            if(do_crop and not fwhm_above_threshold):
+                crop_file(original, f_fits[0].data, f_fits[0].header, perW, perH, cropped_folder)
+
+        return original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder
+    except Exception as e:
+        traceback.print_exc()
 
 def test_args():
     return float(0.7), float(0.7), str("C:\\Users\\Thomas\\Downloads\\lucky_imaging_tool\\MyWorkPythonAll"), float(10), str("n"),

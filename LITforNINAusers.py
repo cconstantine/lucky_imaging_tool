@@ -24,7 +24,8 @@ def main():
                     os.remove(file)   #Removes the offending file
                 else:
                     if(perW!=1 and perH!=1):
-                        common.handle_file(file, data["cropped_folder"], data["moved_orignals_folder"], data["del_uncrop"], data["FWHMthresh"], data["perW"], data["perH"])
+                        with fits.open(row['filename']) as fitsdata:
+                            common.handle_file(file, data["cropped_folder"], data["moved_orignals_folder"], data["del_uncrop"], data["FWHMthresh"], data["perW"], data["perH"])
 
             time.sleep(1)
 

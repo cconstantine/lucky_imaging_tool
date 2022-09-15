@@ -16,5 +16,7 @@ fwhm_calc = fwhm.Calculator()
 
 for filename in common.get_fits_from_folder(args.directory):
 	def do_it():
-		sys.stdout.write("{:2.5f}: ".format(fwhm_calc.fwhm(filename)))
+		with fits.open(row['filename']) as fitsdata:
+			sys.stdout.write("{:2.5f}: ".format(fwhm_calc.fwhm(fitsdata)))
+
 	print("{:2.3f}".format(timeit.Timer(do_it).timeit(number=1)))

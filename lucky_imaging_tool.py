@@ -22,6 +22,20 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGINT, handler)
 
+def backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder):
+    # Remove files where fwhm is too high or if user has specified the original to be deleted after cropping
+    if fwhm_above_threshold or (do_crop and (del_uncrop[0] == 'y')):
+        os.remove(original)
+    else:
+        #Backup original uncropped file.
+        common.backup_file(original, moved_orignals_folder)
+
+# Called before pool._cache is empty
+def callback(*args):
+    original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder = args[0]
+    backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder)
+
+
 def main():
     global exit_program
 
@@ -33,20 +47,22 @@ def main():
         while(exit_program == False):#monitors if NINA is open
             for file in common.get_fits_from_folder(data["path"]):
                 pool.apply_async(common.handle_file,
-                                (file, data["cropped_folder"],
+                                (file,
+                                 data["cropped_folder"],
                                  data["moved_originals_folder"],
                                  data["del_uncrop"],
                                  data["FWHMthresh"],
                                  data["perW"],
-                                 data["perH"]))
+                                 data["perH"]),
+                                callback=callback)
 
             # Wait for tasks to complete before running new batch.
-            while pool._cache:
+            while len(pool._cache) > 0:
                 print("number of jobs pending: ", len(pool._cache))
                 time.sleep(1)
 
             # Sleep some time between work
-            time.sleep(0.1)
+            time.sleep(1)
 
         print("Stopping processes")
         # Wait for pool to finish

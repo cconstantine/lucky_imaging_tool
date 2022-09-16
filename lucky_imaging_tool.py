@@ -9,8 +9,7 @@ from datetime import datetime, timedelta
 # from . import crop
 from crop import crop
 import common
-from multiprocessing import Pool, cpu_count
-import tqdm
+from multiprocessing import Pool, cpu_count, freeze_support
 import signal
 
 exit_program = False
@@ -38,6 +37,8 @@ def callback(*args):
 
 def main():
     global exit_program
+
+    freeze_support()
 
     data = common.init()
     monitoring_path = os.path.abspath(data["path"])

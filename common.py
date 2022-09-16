@@ -158,13 +158,41 @@ def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWH
 def test_args():
     return float(0.7), float(0.7), str("C:\\Users\\Thomas\\Downloads\\lucky_imaging_tool\\MyWorkPythonAll"), float(10), str("n"),
 
+_INFO = '''
+______                             __          _   _            _                              _   ___  
+|  _  \                           / _|        | | | |          | |                            | | |__ \ 
+| | | |___    _   _  ___  _   _  | |_ ___  ___| | | |_   _  ___| | ___   _   _ __  _   _ _ __ | | __ ) |
+| | | / _ \  | | | |/ _ \| | | | |  _/ _ \/ _ \ | | | | | |/ __| |/ / | | | | '_ \| | | | '_ \| |/ // / 
+| |/ / (_) | | |_| | (_) | |_| | | ||  __/  __/ | | | |_| | (__|   <| |_| | | |_) | |_| | | | |   <|_|  
+|___/ \___/   \__, |\___/ \__,_| |_| \___|\___|_| |_|\__,_|\___|_|\_\\__, | | .__/ \__,_|_| |_|_|\_(_)  
+               __/ |                                                  __/ | | |                         
+              |___/                                                  |___/  |_|                         
+ _    _      _ _              _                    ___                                                  
+| |  | |    | | |            | |                  |__ \                                                 
+| |  | | ___| | |          __| | ___    _   _  __ _  ) |                                                
+| |/\| |/ _ \ | |         / _` |/ _ \  | | | |/ _` |/ /                                                 
+\  /\  /  __/ | |_ _ _   | (_| | (_) | | |_| | (_| |_|                                                  
+ \/  \/ \___|_|_(_|_|_)   \__,_|\___/   \__, |\__,_(_)                                                  
+                                         __/ |                                                          
+                                        |___/                                                           
+
+IMPORTANT: This script will overwrite any files from a previous session when the same capture folder is used and new images match those of a previous session.
+Ensure that the captured files have a different name by adding a prefix or add the timestamp to the filenames.")
+Pressing both CTRL and the 'C' character (CTRL+C) exits the applicaton. Prevents corruption in images.")
+'''
 test=False
 def init():
     set_process_priority()
 
+
     # Parse arguments
     data = load_config_from_file()
 
+    # Set console size.
+    os.system("mode con cols=120 lines=50")
+
+    # Print info.
+    print(_INFO)
     if data != None:
         use_config=str(input("Use existing config file (Y/N) N means a new one will be created:")).lower()
         if use_config == "y":

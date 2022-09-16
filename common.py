@@ -94,14 +94,15 @@ def set_process_priority():
 def calculate_fwhm(data, FWHMthresh):
     # Use calculator to get fwhm from image.
     fwhm = Calculator().fwhm(data)
-    print("fwhm: {:2.5f}".format(fwhm))
 
     # If the fwhm is above the threshold it shall be removed.
-    fwhm_above_threshold = fwhm > FWHMthresh
-    if fwhm_above_threshold:
-        print("{} fwhm {:2.5f} > threshold {:2.5f}".format(fwhm, FWHMthresh))
+    is_fwhm_above_threshold = fwhm > FWHMthresh
+    if is_fwhm_above_threshold:
+        print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm, FWHMthresh))
+    else:
+        print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm, FWHMthresh))
 
-    return fwhm
+    return fwhm, is_fwhm_above_threshold
 
 def crop_file(file, fits_data, fits_header, perW, perH, destination_folder):
     # Where to store the cropped file.
@@ -133,25 +134,26 @@ def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWH
         # After a capture the file might still be in use. This ensures that the file has been written fully.
         if is_file_safe_to_handle(original) == False:
             print("Skipping unsafe file")
-            return #Skip it
+            return False, original, False, do_crop, del_uncrop, moved_orignals_folder, False
 
         print("File: {}".format(original))
-        fwhm_above_threshold = False
+        is_fwhm_above_threshold = False
 
         with fits.open(original) as f_fits:
             is_fits_file = is_file_a_fits_file(f_fits[0].header)
 
             if is_fits_file:
                 #Calculate fwhm
-                fwhm = calculate_fwhm(f_fits[0].data, FWHMthresh)
+                fwhm, is_fwhm_above_threshold = calculate_fwhm(f_fits[0].data, FWHMthresh)
 
                 # Crop image is cropping parameters are set (unset is equal to original) and fwhm is OK
-                if(do_crop and not fwhm_above_threshold):
+                if(do_crop and not is_fwhm_above_threshold):
                     crop_file(original, f_fits[0].data, f_fits[0].header, perW, perH, cropped_folder)
 
-        return original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file
+        return True, original, is_fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file
     except Exception as e:
         traceback.print_exc()
+        pass
 
 def test_args():
     return float(0.7), float(0.7), str("C:\\Users\\Thomas\\Downloads\\lucky_imaging_tool\\MyWorkPythonAll"), float(10), str("n"),

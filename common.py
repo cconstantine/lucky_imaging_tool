@@ -21,7 +21,7 @@ def parse_args():
 
     newpath=os.path.join(path, "CroppedGoodImages")
 
-    return perW, perH, path, FWHMthresh, del_uncrop
+    return perW, perH, path, FWHMthresh, del_uncrop, numStar, pixelSize, fl
 
 def create_folder(path):
     if not os.path.exists(path):
@@ -53,7 +53,7 @@ def set_process_priority():
         # Set cpu execution priority
         PID.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
 
-def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH):
+def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH, numStar, pixelSize, fl):
     if is_file_safe_to_handle(original) == False:
         return #Skip it
     fwhm = Calculator(numStar).fwhm(original,fl,pixelSize)
@@ -87,9 +87,9 @@ def init():
     perW, perH, path, FWHMthresh, del_uncrop = None, None, None, None, None
 
     if test:
-        perW, perH, path, FWHMthresh, del_uncrop = test_args()
+        perW, perH, path, FWHMthresh, del_uncrop,numStar, pixelSize, fl = test_args()
     else:
-        perW, perH, path, FWHMthresh, del_uncrop = parse_args()
+        perW, perH, path, FWHMthresh, del_uncrop,numStar, pixelSize, fl = parse_args()
 
     # Create destination folder for cropped images.
     cropped_folder=os.path.join(path, "CroppedGoodImages")

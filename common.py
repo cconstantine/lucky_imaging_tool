@@ -3,63 +3,24 @@ import time
 import crop
 from fwhm import Calculator
 import psutil
-import shutil
-import json
-from astropy.io import fits
-import traceback
-import gc
-
-CONFIG_FILE="lucky_imaging.cnf.json"
-def save_config_to_file(data):
-    with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
-      f.write(json.dumps(data, ensure_ascii=False, indent=4))
-
-def load_config_from_file():
-    if not os.path.isfile(CONFIG_FILE):
-        return None
-
-    with open(CONFIG_FILE) as f:
-        return json.load(f)
-
-def create_config_from_arguments():
-    print("In order to create the config answer the following questions.")
-    if test:
-        data = test_args()
-    else:
-        data = parse_args()
-
-    data["cropped_folder"] = os.path.join(data["path"], "CroppedGoodImages")
-    data["moved_originals_folder"] = os.path.join(data["path"], "MovedOriginalImages")
-
-    print("Saving config to file: {}".format(CONFIG_FILE))
-    print(data)
-    save_config_to_file(data)
-    print("You can rerun this tool any time or manually adapt the config file.")
-    return data
 
 def parse_args():
     print("This script will automatically delete image files if they exceed a certain full width half maximum")
     print("This is set up for fits files only")
+    pixelSize=float(input("Pixel size: "))
+    fl=float(input("Focal Length: "))
     perW=float(input("Fraction of the width to keep (0 - 1, where 0 crops all, 1 keeps full image), ex: 70%=0.7: "))
     perH=float(input("Fraction of the height to keep (0 - 1, where 0 crops all, 1 keeps full image),, ex: 70%=0.7: "))
     path=input("Enter Filepath for monitoring images (e.g. C:\Astrophotography\M31 ): ")
     print("Next select the FWHM or half-flux radius over which images will be deleted")
     print("Note that this is not the FWHM in arc seconds, but in pixels")
-    print("To convert, take the intended maximum FWHM in arc seconds, and multiply by the focal length (mm) and divide by the pixel size (um) times 206.25")
-    print("e.g. 3.0 arcsecs threshold*1200mm/3.75um/206.25 yields a threshold FWHM in pixels of 4.8 pixels")
-    print("HFR is correlated to FWHM but doesn't have a direct conversion.  To use assess the variability of values and select an appropriate threshold")
-    FWHMthresh=float(input("Rejection threshold (FWHM in pixels, or HFR in pixels) above which to delete files: "))
-    del_uncrop=str(input("Delete original uncropped images (Y/N):")).lower()
+    FWHMthresh=float(input("Rejection threshold (FWHM in arcseconds, or HFR in arcseconds) above which to delete files: "))
+    del_uncrop=str(input("Delete original uncropped images (Y/N):"))
+    del_uncrop=del_uncrop.lower()
 
-    json_result = {
-        "perW": perW,
-        "perH": perH,
-        "path": path,
-        "FWHMthresh": FWHMthresh,
-        "del_uncrop": del_uncrop
-    }
+    newpath=os.path.join(path, "CroppedGoodImages")
 
-    return json_result
+    return perW, perH, path, FWHMthresh, del_uncrop
 
 def create_folder(path):
     if not os.path.exists(path):
@@ -91,124 +52,52 @@ def set_process_priority():
         # Set cpu execution priority
         PID.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
 
-def calculate_fwhm(data, FWHMthresh):
-    # Use calculator to get fwhm from image.
-    fwhm = Calculator().fwhm(data)
-
-    # If the fwhm is above the threshold it shall be removed.
-    is_fwhm_above_threshold = fwhm > FWHMthresh
-    if is_fwhm_above_threshold:
-        print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm, FWHMthresh))
-    else:
-        print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm, FWHMthresh))
-
-    return fwhm, is_fwhm_above_threshold
-
-def crop_file(file, fits_data, fits_header, perW, perH, destination_folder):
-    # Where to store the cropped file.
-    cropped_fits_file = os.path.join(destination_folder, os.path.basename(file))
-    print("Cropping to {}.  ".format(destination_folder))
-
-    # Crop file.
-    cropped_fitsdata = crop.crop(fits_data, perW, perH)
-
-    # Save cropped image.
-    fits.writeto(cropped_fits_file, cropped_fitsdata, fits_header, overwrite=True)
-
-def backup_file(file, destination_folder):
-    # Move original to backup location. Required so that script does not rehandle the same file.
-    moved_file = os.path.join(destination_folder, os.path.basename(file))
-    print("Moving to {}".format(destination_folder))
-    os.rename(file, moved_file)
-
-def is_file_a_fits_file(fitsheader):
-    return fitsheader["SIMPLE"] #Boolean answer.
-
-# This file is called by multithreading threads/procs, any prints/exceptions will only be printed from a try catch.
 def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH):
-    try:
-        # If the cropping percentage differs from the original, crop it.
-        # 1 equals original size, so no cropping shall occur.
-        do_crop = (perW != 1 or perH != 1)
+    if is_file_safe_to_handle(original) == False:
+        return #Skip it
+    fwhm = Calculator().fwhm(original,fl,pixelSize)
+    sys.stdout.write("{} fwhm: ".format(original))
+    sys.stdout.write("{:2.5f}.  ".format(fwhm, original))
+    if(fwhm>FWHMthresh):
+        if (del_uncrop[0]=="y"):
+            print("Above threshold of {:2.5f} detected, deleting.".format(FWHMthresh))  #Indicates file being deleted
+            os.remove(original)   #Removes the offending file
+    else:
+        if(perW!=1 and perH!=1):
+            cropped_file = os.path.join(cropped_folder, os.path.basename(original))
+            sys.stdout.write("Cropping to {}.  ".format(cropped_folder))
+            crop.crop(original, cropped_file, perW, perH)
+            if (del_uncrop[0]=="y"):
+                sys.stdout.write("Deleting original file.")  #Indicates file being deleted
+                os.remove(original)
+            print()
+        else:
+            moved_original_file = os.path.join(moved_orignals_folder, os.path.basename(original))
+            print("Moving to {}".format(moved_orignals_folder))
+            os.rename(original, moved_original_file)
 
-        # After a capture the file might still be in use. This ensures that the file has been written fully.
-        if is_file_safe_to_handle(original) == False:
-            print("Skipping unsafe file")
-            return False, original, False, do_crop, del_uncrop, moved_orignals_folder, False
-
-        print("File: {}".format(original))
-        is_fwhm_above_threshold = False
-
-        with fits.open(original) as f_fits:
-            is_fits_file = is_file_a_fits_file(f_fits[0].header)
-
-            if is_fits_file:
-                #Calculate fwhm
-                fwhm, is_fwhm_above_threshold = calculate_fwhm(f_fits[0].data, FWHMthresh)
-
-                # Crop image is cropping parameters are set (unset is equal to original) and fwhm is OK
-                if(do_crop and not is_fwhm_above_threshold):
-                    crop_file(original, f_fits[0].data, f_fits[0].header, perW, perH, cropped_folder)
-
-        return True, original, is_fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file
-    except Exception as e:
-        traceback.print_exc()
-        pass
 
 def test_args():
     return float(0.7), float(0.7), str("C:\\Users\\Thomas\\Downloads\\lucky_imaging_tool\\MyWorkPythonAll"), float(10), str("n"),
 
-_INFO = '''
-______                             __          _   _            _                              _   ___  
-|  _  \                           / _|        | | | |          | |                            | | |__ \ 
-| | | |___    _   _  ___  _   _  | |_ ___  ___| | | |_   _  ___| | ___   _   _ __  _   _ _ __ | | __ ) |
-| | | / _ \  | | | |/ _ \| | | | |  _/ _ \/ _ \ | | | | | |/ __| |/ / | | | | '_ \| | | | '_ \| |/ // / 
-| |/ / (_) | | |_| | (_) | |_| | | ||  __/  __/ | | | |_| | (__|   <| |_| | | |_) | |_| | | | |   <|_|  
-|___/ \___/   \__, |\___/ \__,_| |_| \___|\___|_| |_|\__,_|\___|_|\_\\__, | | .__/ \__,_|_| |_|_|\_(_)  
-               __/ |                                                  __/ | | |                         
-              |___/                                                  |___/  |_|                         
- _    _      _ _              _                    ___                                                  
-| |  | |    | | |            | |                  |__ \                                                 
-| |  | | ___| | |          __| | ___    _   _  __ _  ) |                                                
-| |/\| |/ _ \ | |         / _` |/ _ \  | | | |/ _` |/ /                                                 
-\  /\  /  __/ | |_ _ _   | (_| | (_) | | |_| | (_| |_|                                                  
- \/  \/ \___|_|_(_|_|_)   \__,_|\___/   \__, |\__,_(_)                                                  
-                                         __/ |                                                          
-                                        |___/                                                           
-
-IMPORTANT: This script will overwrite any files from a previous session when the same capture folder is used and new images match those of a previous session.
-Ensure that the captured files have a different name by adding a prefix or add the timestamp to the filenames.")
-Pressing both CTRL and the 'C' character (CTRL+C) exits the applicaton. Prevents corruption in images.")
-'''
 test=False
 def init():
-    set_process_priority()
-
-
     # Parse arguments
-    data = load_config_from_file()
+    perW, perH, path, FWHMthresh, del_uncrop = None, None, None, None, None
 
-    # Set console size.
-    os.system("mode con cols=120 lines=50")
-
-    # Print info.
-    print(_INFO)
-    if data != None:
-        use_config=str(input("Use existing config file (Y/N) N means a new one will be created:")).lower()
-        if use_config == "y":
-            print("Reusing config file.")
-        else:
-            data = create_config_from_arguments()
+    if test:
+        perW, perH, path, FWHMthresh, del_uncrop = test_args()
     else:
-        print("No config file found.. Creating one.")
-        data = create_config_from_arguments()
+        perW, perH, path, FWHMthresh, del_uncrop = parse_args()
 
     # Create destination folder for cropped images.
-    print("Cropped: {}".format(data["cropped_folder"]))
-    create_folder(data["cropped_folder"])
+    cropped_folder=os.path.join(path, "CroppedGoodImages")
+    print("Cropped: {}".format(cropped_folder))
+    create_folder(cropped_folder)
 
-    if data["del_uncrop"]:
-        create_folder(data["moved_originals_folder"])
+    moved_originals_folder=os.path.join(path, "MovedOriginalImages")
+    if del_uncrop:
+        create_folder(moved_originals_folder)
 
     # Return parsed arguments.
-    return data
+    return perW, perH, path, FWHMthresh, del_uncrop, cropped_folder, moved_originals_folder

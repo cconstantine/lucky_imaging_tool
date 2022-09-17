@@ -11,9 +11,11 @@ import timeit
 
 
 class Calculator:
-	def __init__(self):
+	def __init__(self,star=100,thr=10):
 		self.low = 0.0
 		self.high = 500.0
+		self.star=star
+		self.thr=thr
 
 
 	def binary_search(self, func, target, margin):
@@ -56,7 +58,7 @@ class Calculator:
 			objects = sep.extract(data, threshold, err=bkg.globalrms)
 			return len(objects), objects
 
-		objects = self.binary_search(search_func, 100, 10)
+		objects = self.binary_search(search_func, self.star, self.thr)
 		if objects is None:
 			return []
 

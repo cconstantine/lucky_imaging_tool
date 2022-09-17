@@ -9,6 +9,7 @@ def parse_args():
     print("This is set up for fits files only")
     pixelSize=float(input("Pixel size: "))
     fl=float(input("Focal Length: "))
+    numStar=int(input("Enter the number of stars you want detected: "))
     perW=float(input("Fraction of the width to keep (0 - 1, where 0 crops all, 1 keeps full image), ex: 70%=0.7: "))
     perH=float(input("Fraction of the height to keep (0 - 1, where 0 crops all, 1 keeps full image),, ex: 70%=0.7: "))
     path=input("Enter Filepath for monitoring images (e.g. C:\Astrophotography\M31 ): ")
@@ -55,7 +56,7 @@ def set_process_priority():
 def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH):
     if is_file_safe_to_handle(original) == False:
         return #Skip it
-    fwhm = Calculator().fwhm(original,fl,pixelSize)
+    fwhm = Calculator(numStar).fwhm(original,fl,pixelSize)
     sys.stdout.write("{} fwhm: ".format(original))
     sys.stdout.write("{:2.5f}.  ".format(fwhm, original))
     if(fwhm>FWHMthresh):

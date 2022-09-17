@@ -36,9 +36,15 @@ class Calculator:
 				return None
 
 
-	def fwhms(self, fitsdata):
+	def fwhms(self, filename):
+		# Open a file to use
+		f_data=fits.open(filename)
+
+		# Get reference to image data from FITS as numpyarray.
+		data=f_data[0].data
+
 		# Convert to 32 bit integer
-		data=np.array(fitsdata,dtype='int32')
+		data=np.array(data,dtype='int32')
 
 		# Representation of spatially variable image background and noise.
 		bkg = sep.Background(data)
@@ -54,6 +60,9 @@ class Calculator:
 		if objects is None:
 			return []
 
+		# Close fits image as we no longer need it.
+		f_data.close()
+
 		#### Determine FWHMs ####
 		results=[]
 
@@ -63,10 +72,11 @@ class Calculator:
 
 		return results
 
-	def fwhm(self, fitsdata):
-		f = self.fwhms(fitsdata)
+	def fwhm(self, filename, fl, pixelsize):
+		f = self.fwhms(filename)
 		if len(f) > 0:
-			return 0.6188*(statistics.mean(f)+statistics.stdev(f))+(0.5301)
+			fwhmPix=0.6188*(statistics.mean(f)+statistics.stdev(f))+(0.5301)
+			return fwhmPix*((pixelsize/fl)*206.3)
 		else:
 			return 0.0
 
@@ -83,10 +93,7 @@ if __name__ == "__main__":
 			# 	fwhms(os.path.join(path, row['filename']))
 			# print(timeit.Timer(timed).timeit(number=1))
 
-			# Open a file to use
-			with fits.open(row['filename']) as fitsdata:
-				result = calc.fwhm(os.path.join(path, fitsdata))
-
+			result = calc.fwhm(os.path.join(path, row['filename']))
 			# print(timeit.Timer())
 			# temp=statistics.mean(results)+statistics.stdev(results)
 			# result = (0.6188*temp) + 0.5301 if len(results) > 0 else 0.0

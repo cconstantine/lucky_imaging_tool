@@ -9,20 +9,78 @@ from datetime import datetime, timedelta
 # from . import crop
 from crop import crop
 import common
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count, freeze_support
+import signal
+import sys
+import traceback
 
-def main():
-    perW, perH, path, FWHMthresh, del_uncrop, cropped_folder, moved_orignals_folder,numStar, pixelSize, fl = common.init()
-    common.set_process_priority()
+exit_program = False
+def handler(signum, frame):
+    global exit_program
+    if exit_program == False:
+        exit_program = True
 
+signal.signal(signal.SIGINT, handler)
+
+def backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file):
+    # Remove files where fwhm is too high or if user has specified the original to be deleted after cropping
+    if is_fits_file and (fwhm_above_threshold or (do_crop and (del_uncrop[0] == 'y'))):
+        print("Removed file {}".format(original))
+        os.remove(original)
+    else:
+        #Backup original uncropped file or files which are not a fits file.
+        print("Moved file {} to {}".format(original, moved_orignals_folder))
+        common.backup_file(original, moved_orignals_folder)
+
+# Called before pool._cache is empty
+def callback(*args):
+    try:
+        result, original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file = args[0]
+        backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file)
+    except Exception as e:
+        traceback.print_exc()
+        pass
+
+def main(argv):
+    global exit_program
+
+    freeze_support()
+
+    data = common.init()
+
+    monitoring_path = os.path.abspath(data["path"])
     with Pool(processes=cpu_count()) as pool:
-        print("Monitoring ", os.path.abspath(path)) #Just an indicator that monitoring is active
-        while(True):#monitors if NINA is open
-            print("Monitoring filepath...") #Just an indicator that monitoring is active
-            for file in common.get_fits_from_folder(path):
-                pool.apply_async(common.handle_file, (file, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH, numStar, pixelSize, fl))
+        print("Monitoring filepath {}".format(monitoring_path))
 
+        while(exit_program == False):#monitors if NINA is open
+            for file in common.get_fits_from_folder(data["path"]):
+                pool.apply_async(common.handle_file,
+                                (file,
+                                 data["cropped_folder"],
+                                 data["moved_originals_folder"],
+                                 data["del_uncrop"],
+                                 data["FWHMthresh"],
+                                 data["perW"],
+                                 data["perH"],
+                                 data["numStar"],
+                                 data["pixelSize"],
+                                 data["fl"]),
+                                callback=callback)
+
+            # Wait for tasks to complete before running new batch.
+            while len(pool._cache) > 0:
+                print("number of jobs pending: ", len(pool._cache))
+                time.sleep(1)
+
+            # Sleep some time between work
             time.sleep(1)
+ 
+        print("Stopping processes")
+        # Wait for pool to finish
+        pool.close()
+        pool.join()
 
 if __name__ == "__main__":
-    main()
+    print("Starting {}".format(sys.argv[0]))
+    main(sys.argv[1:])
+

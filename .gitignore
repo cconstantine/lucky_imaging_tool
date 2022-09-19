@@ -5,3 +5,4 @@ dist/
 lucky_imaging.cnf.json
 *.spec
 test/images/CroppedGoodImages/
+test/images/MovedOriginalImages/

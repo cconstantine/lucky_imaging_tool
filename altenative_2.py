@@ -127,6 +127,11 @@ def get_stars_from_data(focal_length, pixel_size, data, threshold):
     # Calculate the FWHMs of the stars:
     fwhm = 2.0 * (np.log(2) * (objects['a'] ** 2.0 + objects['b'] ** 2.0)) ** 0.5
 
+    # Remove any larger than.
+    fwhm = fwhm[fwhm < 30]
+    # print(fwhm)
+    # exit()
+
     # for i in range(len(objects)):
     #     thing=(float(objects['a'][i])**2) + (float(objects['b'][i])**2)
     #     fwhm2 = 2 * (sqrt((np.log(2)) * thing))
@@ -182,16 +187,19 @@ def get_stars_from_data(focal_length, pixel_size, data, threshold):
 
 
         text_offset = 15
-        plt.text(x[0][i] + text_offset, x[1][i] + text_offset, "Star [{}] fwhm: {:.2f}".format(i, fwhm[i]), bbox=dict(facecolor='red'))
+        try:
+            plt.text(x[0][i] + text_offset, x[1][i] + text_offset, "Star [{}] fwhm: {:.2f}".format(i, fwhm[i]), bbox=dict(facecolor='red'))
 
-        fwhm_arcsec = pixel_scale * fwhm[i]
-        print("This star has an fwhm in arcsec of {}".format(fwhm_arcsec))
+
+            fwhm_arcsec = pixel_scale * fwhm[i]
+            print("This star has an fwhm in arcsec of {}".format(fwhm_arcsec))
+        except:
+            pass
 
     legend_elements = [ Line2D([0], [0], color='blue', lw=4, label='Full width of star'),
                         Line2D([0], [0], color='lime', lw=4, label='FMHW of star'),
                         Line2D([0], [0], color='red', lw=4, label='Blown up shape. Shows roundness of star')]
     plt.legend(handles=legend_elements)
-
 
     print("pixel_scale in arcsec is {}".format(pixel_scale))
     print("image_scale in arcsec is {}".format(image_scale))
@@ -224,6 +232,8 @@ def get_stars_from_data(focal_length, pixel_size, data, threshold):
     print("The one dev is {}".format(stdev))
     print("The one is {}".format(mean + stdev))
     print("The one arcsec is {}".format((mean + stdev) * image_scale))
+
+
 
     # Print a comparable string as test-my-scope
     final_fwhm = mean + stdev
@@ -267,7 +277,26 @@ def test_image4():
     threshold = 12
     return threshold, image, header_inserts
 
-threshold, image, header_inserts = test_image1()
+# discord: https://discord.com/channels/794642864218439681/863299203848994837/1020211156729737236
+# test-my-scope gives: FWHM: 4.09 px / 15.12 arcsec
+# Our script:          FWHM: 4.468815291357455 px / 2.8247489573169453 arcsec
+def test_image5():
+    image="C:\\Users\\Thomas\\Downloads\\thomas\\lucky_imaging_tool\\test\\images\\3.99arcsec_0.27eccs_2022-09-18_22-56-26_B5.00s_0208.fits"
+    header_inserts = []
+    threshold = 18
+    return threshold, image, header_inserts
+
+# discord: https://discord.com/channels/794642864218439681/1020211156729737236
+# test-my-scope gives: FWHM: 3.73 px / 1.07 arcsec
+# Manual:              FWHM  6.84 px / 1.958801564
+# Our script:          FWHM: 6.26995799093193 px / 1.7955560697838449 arcsec
+def test_image6():
+    image="C:\\Users\\Thomas\\Downloads\\thomas\\lucky_imaging_tool\\test\\images\\2022-07-19-2344_1-L-DSO_pipp_f0001.fit"
+    header_inserts = []
+    threshold = 6
+    return threshold, image, header_inserts
+
+threshold, image, header_inserts = test_image6()
 
 with fits.open(image) as f:
     data = f[0].data
@@ -279,6 +308,7 @@ with fits.open(image) as f:
 
     focal_length = header["FOCALLEN"]
     pixel_size = header["XPIXSZ"]
+
     if header["XPIXSZ"] != header["YPIXSZ"]:
         print("No support for non-rectangular pixel sizes yet")
         exit()

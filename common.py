@@ -8,6 +8,7 @@ import json
 from astropy.io import fits
 import traceback
 import gc
+import numpy as np
 
 CONFIG_FILE="lucky_imaging.cnf.json"
 def save_config_to_file(data):
@@ -46,7 +47,7 @@ def parse_args():
     perW=float(input("Fraction of the width to keep (0 - 1, where 0 crops all, 1 keeps full image), ex: 70%=0.7: "))
     perH=float(input("Fraction of the height to keep (0 - 1, where 0 crops all, 1 keeps full image),, ex: 70%=0.7: "))
     path=input("Enter Filepath for monitoring images (e.g. C:\Astrophotography\M31 ): ")
-    print("Next select the FWHM or half-flux radius over which images will be deleted")
+    print("Next select the FWHM in arcsecond threshold over which images will be deleted. Any image with a value larger then X (Exmaple: 3.0) will be deleted.")
     print("Note that this is not the FWHM in arc seconds, but in pixels")
     FWHMthresh=float(input("Rejection threshold (FWHM in arcseconds, or HFR in arcseconds) above which to delete files: "))
     del_uncrop=str(input("Delete original uncropped images (Y/N):"))
@@ -96,18 +97,18 @@ def set_process_priority():
         PID.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
 
  
-def calculate_fwhm(data, FWHMthresh, numStar, focal_length, pizel_size):
+def calculate_fwhm(data, FWHMthresh, numStar, focal_length, pixel_size):
     # Use calculator to get fwhm from image.
-    fwhm = Calculator(numStar).fwhm(data, focal_length, pizel_size)
-
+    objects, fwhm_px, fwhm_arcsec = Calculator(numStar, FWHMthresh).fwhm(focal_length, pixel_size, data)
+    
     # If the fwhm is above the threshold it shall be removed.
-    is_fwhm_above_threshold = fwhm > FWHMthresh
+    is_fwhm_above_threshold = fwhm_px > FWHMthresh
     if is_fwhm_above_threshold:
-        print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm, FWHMthresh))
+        print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm_px, FWHMthresh))
     else:
-        print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm, FWHMthresh))
+        print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm_px, FWHMthresh))
 
-    return fwhm, is_fwhm_above_threshold
+    return fwhm_px, fwhm_arcsec, is_fwhm_above_threshold
 
 def crop_file(file, fits_data, fits_header, perW, perH, destination_folder):
     # Where to store the cropped file.
@@ -148,16 +149,32 @@ def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWH
             is_fits_file = is_file_a_fits_file(f_fits[0].header)
 
             if is_fits_file:
+                data = f_fits[0].data
+
+                # TODO: add all other bayer patterns
+                try:
+                    bayer_pattern = header["BAYERPAT"]
+                    print("bayer_pattern is {}".format(bayer_pattern))
+
+                    debayered_image = cv2.cvtColor(data, cv2.COLOR_BayerRG2BGR)
+                    data = cv2.normalize(debayered_image, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_16U)
+
+                except Exception as e:
+                    bayer_pattern = None
+
+                # Convert to 32 bit integer
+                data=np.array(data,dtype='int32')
+
                 #Calculate fwhm
-                fwhm, is_fwhm_above_threshold = calculate_fwhm(f_fits[0].data, FWHMthresh, numStar, fl, pixelSize)
+                fwhm_px, fwhm_arcsec, is_fwhm_above_threshold = calculate_fwhm(data, FWHMthresh, numStar, fl, pixelSize)
 
                 # Crop image is cropping parameters are set (unset is equal to original) and fwhm is OK
                 if(do_crop and not is_fwhm_above_threshold):
                     crop_file(original, f_fits[0].data, f_fits[0].header, perW, perH, cropped_folder)
         return True, original, is_fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file
     except Exception as e:
-        traceback.print_exc()
-        pass
+        # traceback.print_exc()
+        return False, original, False, False, 'n', moved_orignals_folder, is_fits_file
 
 
 def test_args():

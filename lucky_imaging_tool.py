@@ -38,7 +38,9 @@ def callback(*args):
         result, original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file = args[0]
         backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file)
     except Exception as e:
-        traceback.print_exc()
+        print("Failed to handle file {}, Going to move it".format(original))
+        backup_or_remove_file(original, False, False, 'n', moved_orignals_folder, False)
+        # traceback.print_exc()
         pass
 
 def main(argv):

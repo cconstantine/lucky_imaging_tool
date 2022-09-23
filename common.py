@@ -102,11 +102,11 @@ def calculate_fwhm(data, FWHMthresh, numStar, focal_length, pixel_size):
     objects, fwhm_px, fwhm_arcsec = Calculator(numStar, FWHMthresh).fwhm(focal_length, pixel_size, data)
     
     # If the fwhm is above the threshold it shall be removed.
-    is_fwhm_above_threshold = fwhm_px > FWHMthresh
+    is_fwhm_above_threshold = fwhm_arcsec > FWHMthresh
     if is_fwhm_above_threshold:
-        print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm_px, FWHMthresh))
+        print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm_arcsec, FWHMthresh))
     else:
-        print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm_px, FWHMthresh))
+        print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm_arcsec, FWHMthresh))
 
     return fwhm_px, fwhm_arcsec, is_fwhm_above_threshold
 

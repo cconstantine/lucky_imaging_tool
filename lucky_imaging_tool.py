@@ -48,25 +48,25 @@ def main(argv):
 
     freeze_support()
 
-    data = common.init()
+    context = common.init()
 
-    monitoring_path = os.path.abspath(data["path"])
+    monitoring_path = os.path.abspath(context["path"])
     with Pool(processes=cpu_count()) as pool:
         print("Monitoring filepath {}".format(monitoring_path))
 
         while(exit_program == False):#monitors if NINA is open
-            for file in common.get_fits_from_folder(data["path"]):
+            for file in common.get_fits_from_folder(context["path"]):
                 pool.apply_async(common.handle_file,
                                 (file,
-                                 data["cropped_folder"],
-                                 data["moved_originals_folder"],
-                                 data["del_uncrop"],
-                                 data["FWHMthresh"],
-                                 data["perW"],
-                                 data["perH"],
-                                 data["numStar"],
-                                 data["pixelSize"],
-                                 data["fl"]),
+                                 context["cropped_folder"],
+                                 context["moved_originals_folder"],
+                                 context["del_uncrop"],
+                                 context["FWHMthresh"],
+                                 context["perW"],
+                                 context["perH"],
+                                 context["numStar"],
+                                 context["pixelSize"],
+                                 context["fl"]),
                                 callback=callback)
 
             # Wait for tasks to complete before running new batch.

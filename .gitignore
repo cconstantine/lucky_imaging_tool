@@ -7,3 +7,4 @@ lucky_imaging.cnf.json
 test/images/CroppedGoodImages/
 test/images/MovedOriginalImages/
 test/images/MovedUnsupportedImages/
+test/images/MovedRejectedImages/

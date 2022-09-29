@@ -39,7 +39,7 @@ def callback(*args):
         context = args[0][0]
         processing_result = args[0][1]
 
-        # backup_or_remove_file(context, processing_result)
+        backup_or_remove_file(context, processing_result)
     except Exception as e:
         traceback.print_exc()
         pass

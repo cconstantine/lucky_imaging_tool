@@ -56,9 +56,9 @@ def get_stars_from_data(focal_length, pixel_size, data, threshold):
 
 
     # Show all plots
-    plt.show()
+    # plt.show()
 
-    exit()
+    # exit()
 
     # Plot found objects
     # bkg_sub_plot = plt.figure("Found stars")
@@ -302,9 +302,9 @@ def test_image6():
 
 
 def test_image7():
-    image="C:\\Users\\Thomas\\Downloads\\thomas\\lucky_imaging_tool\\test\\images\\BAT1_Cocoon_Nebula_mosaic_PANE_6_LIGHT_ha_600s_BIN1_-10C_001_20220813_034014_966_GA_100_OF_50_E_c.fits"
+    image="C:\\Users\\Thomas\\Downloads\\thomas\\lucky_imaging_tool\\test\\images\\Cannot_process_this\\BAT1_Cocoon_Nebula_mosaic_PANE_6_LIGHT_ha_600s_BIN1_-10C_001_20220813_034014_966_GA_100_OF_50_E_c.fits"
     header_inserts = []
-    threshold = 1
+    threshold = 75
     return threshold, image, header_inserts
 
 threshold, image, header_inserts = test_image7()
@@ -345,12 +345,11 @@ with fits.open(image) as f:
         bayer_pattern = None
 
     # Convert to 32 bit integer
-    data=np.array(data,dtype='int32')
-    print(header["BITPIX"])
+    data=np.array(data, dtype='float64')
     plt.imshow(data)
     # Show all plots
-    plt.show()    
-    exit(0)
+    # plt.show()    
+    # exit(0)
 
     objects = get_stars_from_data(focal_length, pixel_size, data, threshold)
 

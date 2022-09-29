@@ -10,15 +10,15 @@ import csv
 import timeit
 
 class Calculator:
-    def __init__(self, context, star=100, thr=10):
+    def __init__(self, context):
         self._BINARY_SEARCH_INITIAL_LOW = 0.0
         self.BINARY_SEARCH_INITIAL_HIGH = 500.0
 
 
-        self._TARGET_STARS_DETECTED=star
-        self._THRESHOLD=thr
-        self._FOCAL_LENGTH = context["fl"]
-        self._PIXEL_SIZE = context["pixelSize"]
+        self._TARGET_STARS_DETECTED=context["detect_number_of_stars_target"]
+        self._THRESHOLD=context["fwhm_arcsec_threshold"]
+        self._FOCAL_LENGTH = context["focal_length"]
+        self._PIXEL_SIZE = context["pixel_size"]
 
         self._ARCSEC_CONSTANT = 206.265
 

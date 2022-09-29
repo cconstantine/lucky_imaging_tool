@@ -23,24 +23,25 @@ def handler(signum, frame):
 signal.signal(signal.SIGINT, handler)
 
 def backup_or_remove_file(context, result):
-    # Remove files where fwhm is too high or if user has specified the original to be deleted after cropping
-    if is_fits_file and (fwhm_above_threshold or (do_crop and (del_uncrop[0] == 'y'))):
-        print("Removed file {}".format(original))
-        os.remove(original)
+    if (result["processed"] == False) or (result["valid_fits_file"] == False):
+        print("Unable to process file: {}. Please submit an error on https://github.com/cconstantine/lucky_imaging_tool/issues. Share the image.".format(result["fits_filepath"]))
+        common.backup_file(result["fits_filepath"], context["moved_unsupported_folder"])
+    elif result["rejected"]:
+        common.backup_file(result["fits_filepath"], context["moved_rejects_folder"])
+    elif result["cropped"] and context["delete_uncropped_original"]:
+        os.remove(result["fits_filepath"])
     else:
-        #Backup original uncropped file or files which are not a fits file.
-        print("Moved file {} to {}".format(original, moved_orignals_folder))
-        common.backup_file(original, moved_orignals_folder)
+        common.backup_file(result["fits_filepath"], context["moved_rejects_folder"])
 
 # Called before pool._cache is empty
 def callback(*args):
     try:
-        result, original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file = args[0]
-        backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file)
+        context = args[0][0]
+        processing_result = args[0][1]
+
+        # backup_or_remove_file(context, processing_result)
     except Exception as e:
-        print("Failed to handle file {}, Going to move it".format(original))
-        backup_or_remove_file(original, False, False, 'n', moved_orignals_folder, False)
-        # traceback.print_exc()
+        traceback.print_exc()
         pass
 
 def main(argv):
@@ -50,12 +51,13 @@ def main(argv):
 
     context = common.init()
 
-    monitoring_path = os.path.abspath(context["path"])
+    monitoring_folder = os.path.abspath(context["monitoring_folder"])
     with Pool(processes=cpu_count()) as pool:
-        print("Monitoring filepath {}".format(monitoring_path))
+        print("Monitoring filepath {}".format(monitoring_folder))
 
-        while(exit_program == False):#monitors if NINA is open
-            for file in common.get_fits_from_folder(context["path"]):
+        while(exit_program == False): #Until SIGINT is received keep monitoring.
+            for file in common.get_fits_from_folder(context["monitoring_folder"]):
+                print(file)
                 pool.apply_async(common.process_fits_image, (file, context), callback=callback)
 
             # Wait for tasks to complete before running new batch.

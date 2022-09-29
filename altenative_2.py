@@ -10,7 +10,6 @@ from matplotlib.lines import Line2D
 import cv
 
 def get_stars_from_data(focal_length, pixel_size, data, threshold):
-
     # Plot raw image data
     m, s = np.mean(data), np.std(data)
     org_plt = plt.figure("Raw data")
@@ -54,7 +53,12 @@ def get_stars_from_data(focal_length, pixel_size, data, threshold):
     [1., 2., 3., 2., 1.]])
     objects = sep.extract(data, threshold, err=bkg.globalrms, filter_type="matched", filter_kernel=kernel)
     print(len(objects))
-    # exit()
+
+
+    # Show all plots
+    plt.show()
+
+    exit()
 
     # Plot found objects
     # bkg_sub_plot = plt.figure("Found stars")
@@ -296,11 +300,19 @@ def test_image6():
     threshold = 6
     return threshold, image, header_inserts
 
-threshold, image, header_inserts = test_image6()
+
+def test_image7():
+    image="C:\\Users\\Thomas\\Downloads\\thomas\\lucky_imaging_tool\\test\\images\\BAT1_Cocoon_Nebula_mosaic_PANE_6_LIGHT_ha_600s_BIN1_-10C_001_20220813_034014_966_GA_100_OF_50_E_c.fits"
+    header_inserts = []
+    threshold = 1
+    return threshold, image, header_inserts
+
+threshold, image, header_inserts = test_image7()
 
 with fits.open(image) as f:
     data = f[0].data
     header = f[0].header
+
 
     # Insert header missing info.
     for key, val in header_inserts:
@@ -334,6 +346,11 @@ with fits.open(image) as f:
 
     # Convert to 32 bit integer
     data=np.array(data,dtype='int32')
+    print(header["BITPIX"])
+    plt.imshow(data)
+    # Show all plots
+    plt.show()    
+    exit(0)
 
     objects = get_stars_from_data(focal_length, pixel_size, data, threshold)
 

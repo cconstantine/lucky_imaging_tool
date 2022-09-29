@@ -73,6 +73,7 @@ def create_folder(path):
 def get_fits_from_folder(path):
     return glob.glob(os.path.join(path,"*.fit*"))
 
+# After a capture the file might still be in use. This ensures that the file has been written fully.
 def is_file_safe_to_handle(file):
     DELTA = 3 #seconds
     f_time = os.path.getmtime(file)
@@ -97,18 +98,20 @@ def set_process_priority():
         PID.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
 
  
-def calculate_fwhm(data, FWHMthresh, numStar, focal_length, pixel_size):
+def calculate_fwhm(context, data):
     # Use calculator to get fwhm from image.
-    objects, fwhm_px, fwhm_arcsec = Calculator(numStar, FWHMthresh).fwhm(focal_length, pixel_size, data)
+    objects, fwhm_px, fwhm_arcsec = Calculator(context).fwhm(data)
     
+    return fwhm_px, fwhm_arcsec
+
+def does_FWHM_exceed_threshold(fwhm_arcsec, FWHMthresh):
     # If the fwhm is above the threshold it shall be removed.
     is_fwhm_above_threshold = fwhm_arcsec > FWHMthresh
     if is_fwhm_above_threshold:
         print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm_arcsec, FWHMthresh))
     else:
         print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm_arcsec, FWHMthresh))
-
-    return fwhm_px, fwhm_arcsec, is_fwhm_above_threshold
+    return is_fwhm_above_threshold
 
 def crop_file(file, fits_data, fits_header, perW, perH, destination_folder):
     # Where to store the cropped file.
@@ -130,51 +133,79 @@ def backup_file(file, destination_folder):
 def is_file_a_fits_file(fitsheader):
     return fitsheader["SIMPLE"] #Boolean answer.
 
-# This file is called by multithreading threads/procs, any prints/exceptions will only be printed from a try catch.
-def handle_file(original, cropped_folder, moved_orignals_folder, del_uncrop, FWHMthresh, perW, perH, numStar, pixelSize, fl):
+# If the cropping percentage differs from the original, crop it.
+# 1 equals original size, so no cropping shall occur.
+def is_crop_enabled(context):
+    return (data["perW"] != 1 or data["perH"] != 1)
+
+def get_bayer_pattern(fitsheader):
+    bayer_pattern = None
     try:
-        # If the cropping percentage differs from the original, crop it.
-        # 1 equals original size, so no cropping shall occur.
-        do_crop = (perW != 1 or perH != 1)
+        bayer_pattern = header["BAYERPAT"]
+    except Exception:
+        pass
 
-        # After a capture the file might still be in use. This ensures that the file has been written fully.
-        if is_file_safe_to_handle(original) == False:
-            print("Skipping unsafe file")
-            return False, original, False, do_crop, del_uncrop, moved_orignals_folder, False
+    return bayer_pattern
 
-        print("File: {}".format(original))
-        is_fwhm_above_threshold = False
+def debayer(data, bayer_pattern):
+    if bayer_pattern != None:
+        if bayer_pattern == "RGGB":
+            data = cv2.cvtColor(data, cv2.COLOR_BayerRG2BGR)
+            data = cv2.normalize(data, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_16U)
+        else:
+            print("Unsupported debayer pattern {}".format(bayer_pattern))
+            print("Please create an issue on https://github.com/cconstantine/lucky_imaging_tool/issues.")
+            print("Or share you image in discord in any of the lucky imaging chats.")
+            print("Currently only RGGB is supported, share and yours will be added.")
+            print("Debayering is not performed.")
 
-        with fits.open(original) as f_fits:
-            is_fits_file = is_file_a_fits_file(f_fits[0].header)
+    return data
 
-            if is_fits_file:
-                data = f_fits[0].data
+# This file is called by multithreading threads/procs, any prints/exceptions will only be printed from a try catch.
+def process_fits_image(fits_filepath, context):
 
-                # TODO: add all other bayer patterns
-                try:
-                    bayer_pattern = header["BAYERPAT"]
-                    print("bayer_pattern is {}".format(bayer_pattern))
+    # Default values for an unprocessed non valid fits file.
+    # Any passing processing step will update the result accordingly.
+    result = {
+        "fits_filepath": fits_filepath,
+        "cropped": False,
+        "processed": False,
+        "valid_fits_file": False,
+        "fwhm": {
+            "px": float(-1),
+            "arcsec": float(-1)
+        },
+    }
 
-                    debayered_image = cv2.cvtColor(data, cv2.COLOR_BayerRG2BGR)
-                    data = cv2.normalize(debayered_image, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_16U)
+    try:
+        do_crop = is_crop_enabled(context)
+        do_process = is_file_safe_to_handle(fits_filepath)
 
-                except Exception as e:
-                    bayer_pattern = None
+        if do_process:
+            with fits.open(original) as f_fits:
+                result["valid_fits_file"] = is_file_a_fits_file(f_fits[0].header)
 
-                # Convert to 32 bit integer
-                data=np.array(data,dtype='int32')
+                if result["valid_fits_file"]:
+                    data = debayer(f_fits[0].data)
 
-                #Calculate fwhm
-                fwhm_px, fwhm_arcsec, is_fwhm_above_threshold = calculate_fwhm(data, FWHMthresh, numStar, fl, pixelSize)
+                    # Convert to 32 bit integer for sep library in calculate fwhm
+                    data=np.array(data,dtype='int32')
 
-                # Crop image is cropping parameters are set (unset is equal to original) and fwhm is OK
-                if(do_crop and not is_fwhm_above_threshold):
-                    crop_file(original, f_fits[0].data, f_fits[0].header, perW, perH, cropped_folder)
-        return True, original, is_fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file
+                    #Calculate fwhm
+                    result["fwhm"]["px"], result["fwhm"]["arcsec"],  = calculate_fwhm(context, data)
+
+                    # Determine if the quality is OK.
+                    result["rejected"] = does_FWHM_exceed_threshold(result["fwhm"]["arcsec"], context["FWHMthresh"])
+
+                    if result["rejected"] == False:
+                        if do_crop == True:
+                            crop_file(original, f_fits[0].data, f_fits[0].header, context["perW"], context["perH"], context["cropped_folder"])
+                            result["cropped"] = True
+
+        return context, result
     except Exception as e:
         # traceback.print_exc()
-        return False, original, False, False, 'n', moved_orignals_folder, is_fits_file
+        return context, result
 
 
 def test_args():

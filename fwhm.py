@@ -9,18 +9,31 @@ import os
 import csv
 import timeit
 
-
 class Calculator:
-    def __init__(self, star=100, thr=10):
-        self.low = 0.0
-        self.high = 500.0
-        self.star=star
-        self.thr=thr
+    def __init__(self, context, star=100, thr=10):
+        self._BINARY_SEARCH_INITIAL_LOW = 0.0
+        self.BINARY_SEARCH_INITIAL_HIGH = 500.0
+
+
+        self._TARGET_STARS_DETECTED=star
+        self._THRESHOLD=thr
+        self._FOCAL_LENGTH = context["fl"]
+        self._PIXEL_SIZE = context["pixelSize"]
+
+        self._ARCSEC_CONSTANT = 206.265
+
+        # Create a filter-kernal with the shape of a star (round point ;))
+        self._KERNEL = np.array([[1., 2., 3., 2., 1.],
+                                 [2., 3., 5., 3., 2.],
+                                 [3., 5., 8., 5., 3.],
+                                 [2., 3., 5., 3., 2.],
+                                 [1., 2., 3., 2., 1.]])
+
 
 
     def binary_search(self, func, data, target, margin, background, kernel):
-        low = self.low
-        high = self.high
+        low = self._BINARY_SEARCH_INITIAL_LOW
+        high = self.BINARY_SEARCH_INITIAL_HIGH
 
         while True:
             cur = (low + high) / 2.0
@@ -37,11 +50,11 @@ class Calculator:
             if high - low < 0.2:
                 return None
 
-    def search_func(self, data, threshold, bkg, kernel):
+    def _search_func(self, data, threshold, bkg, kernel):
         objects = sep.extract(data, threshold, err=bkg.globalrms, filter_type="matched", filter_kernel=kernel)
         return len(objects), objects
 
-    def fwhm(self, focal_length, pixel_size, data):
+    def fwhm(self, data):
         # Representation of spatially variable image background and noise.
         bkg = sep.Background(data)
 
@@ -54,14 +67,8 @@ class Calculator:
         # Subtract the background from an existing array. Like data = data - bkg, but avoids making a copy of the data.
         bkg.subfrom(data)
 
-        # Create a filter-kernal with the shape of a star (round point ;))
-        kernel = np.array([[1., 2., 3., 2., 1.],
-        [2., 3., 5., 3., 2.],
-        [3., 5., 8., 5., 3.],
-        [2., 3., 5., 3., 2.],
-        [1., 2., 3., 2., 1.]])
 
-        objects = self.binary_search(self.search_func, data, self.star, self.thr, bkg, kernel)
+        objects = self.binary_search(self._search_func, data, self._TARGET_STARS_DETECTED, self._THRESHOLD, bkg, self._KERNEL)
         if objects is None:
             return None
 
@@ -81,17 +88,15 @@ class Calculator:
 
         # print(fwhm)
         # exit()
-        arcsec_constant = 206.265
-        pixel_scale = ((pixel_size / focal_length) * arcsec_constant)
-        perfect_arcsec_per_px = 122 / focal_length
-        image_scale = arcsec_constant * pixel_size / focal_length
+        pixel_scale = ((self._PIXEL_SIZE / self._FOCAL_LENGTH) * self._ARCSEC_CONSTANT)
+        # perfect_arcsec_per_px = 122 / self._FOCAL_LENGTH
+        # image_scale = self._ARCSEC_CONSTANT * self._PIXEL_SIZE / self._FOCAL_LENGTH
 
         # Print a comparable string as test-my-scope
         mean, stdev = np.mean(fwhm), np.std(fwhm)
         final_fwhm = mean + stdev
-        final_arcsec = (mean + stdev) * image_scale
+        final_arcsec = (mean + stdev) * pixel_scale
         print("FWHM: {} px / {} arcsec".format(final_fwhm, final_arcsec))
-        # exit()
         return objects, final_fwhm, final_arcsec
 
 # Broken fix fwhm params

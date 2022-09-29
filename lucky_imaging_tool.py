@@ -22,7 +22,7 @@ def handler(signum, frame):
 
 signal.signal(signal.SIGINT, handler)
 
-def backup_or_remove_file(original, fwhm_above_threshold, do_crop, del_uncrop, moved_orignals_folder, is_fits_file):
+def backup_or_remove_file(context, result):
     # Remove files where fwhm is too high or if user has specified the original to be deleted after cropping
     if is_fits_file and (fwhm_above_threshold or (do_crop and (del_uncrop[0] == 'y'))):
         print("Removed file {}".format(original))
@@ -56,18 +56,7 @@ def main(argv):
 
         while(exit_program == False):#monitors if NINA is open
             for file in common.get_fits_from_folder(context["path"]):
-                pool.apply_async(common.handle_file,
-                                (file,
-                                 context["cropped_folder"],
-                                 context["moved_originals_folder"],
-                                 context["del_uncrop"],
-                                 context["FWHMthresh"],
-                                 context["perW"],
-                                 context["perH"],
-                                 context["numStar"],
-                                 context["pixelSize"],
-                                 context["fl"]),
-                                callback=callback)
+                pool.apply_async(common.process_fits_image, (file, context), callback=callback)
 
             # Wait for tasks to complete before running new batch.
             while len(pool._cache) > 0:

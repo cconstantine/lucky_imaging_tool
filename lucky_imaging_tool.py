@@ -56,14 +56,24 @@ def main(argv):
         print("Monitoring filepath {}".format(monitoring_folder))
 
         while(exit_program == False): #Until SIGINT is received keep monitoring.
-            for file in common.get_fits_from_folder(context["monitoring_folder"]):
+            files = common.get_fits_from_folder(context["monitoring_folder"])
+            for file in files:
                 print(file)
                 pool.apply_async(common.process_fits_image, (file, context), callback=callback)
 
+            start_time = time.time()
+
             # Wait for tasks to complete before running new batch.
-            while len(pool._cache) > 0:
-                print("number of jobs pending: ", len(pool._cache))
-                time.sleep(1)
+            if len(pool._cache) > 0:
+                print("Processing new batch of images. {} number of images found".format(len(files)))
+
+                while len(pool._cache) > 0:
+                    print("number of jobs pending: ", len(pool._cache))
+                    time.sleep(1)
+
+            elapsed_time = time.time() - start_time
+
+            print("This took {} seconds for {} files. {}/file".format(elapsed_time, 500, elapsed_time/500))
 
             # Sleep some time between work
             time.sleep(1)

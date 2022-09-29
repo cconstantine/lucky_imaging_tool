@@ -96,7 +96,7 @@ class Calculator:
         mean, stdev = np.mean(fwhm), np.std(fwhm)
         final_fwhm = mean + stdev
         final_arcsec = (mean + stdev) * pixel_scale
-        print("FWHM: {} px / {} arcsec".format(final_fwhm, final_arcsec))
+        # print("FWHM: {} px / {} arcsec".format(final_fwhm, final_arcsec))
         return objects, final_fwhm, final_arcsec
 
 # Broken fix fwhm params

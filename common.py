@@ -106,16 +106,16 @@ def calculate_fwhm(context, data):
 def does_FWHM_exceed_threshold(fwhm_arcsec, fwhm_arcsec_threshold):
     # If the fwhm is above the threshold it shall be removed.
     is_fwhm_above_threshold = fwhm_arcsec > fwhm_arcsec_threshold
-    if is_fwhm_above_threshold:
-        print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm_arcsec, fwhm_arcsec_threshold))
-    else:
-        print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm_arcsec, fwhm_arcsec_threshold))
+    # if is_fwhm_above_threshold:
+    #     print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm_arcsec, fwhm_arcsec_threshold))
+    # else:
+    #     print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm_arcsec, fwhm_arcsec_threshold))
     return is_fwhm_above_threshold
 
 def crop_file(file, fits_data, fits_header, crop_factor_width, crop_factor_height, destination_folder):
     # Where to store the cropped file.
     cropped_fits_file = os.path.join(destination_folder, os.path.basename(file))
-    print("Cropping to {}.  ".format(destination_folder))
+    # print("Cropping to {}.  ".format(destination_folder))
 
     # Crop file.
     cropped_fitsdata = crop.crop(fits_data, crop_factor_width, crop_factor_height)
@@ -169,7 +169,7 @@ def debayer(data, bayer_pattern):
 
 # This file is called by multithreading threads/procs, any prints/exceptions will only be printed from a try catch.
 def process_fits_image(fits_filepath, context):
-    print("Process: {}".format(fits_filepath))
+    # print("Process: {}".format(fits_filepath))
 
     # Default values for an unprocessed non valid fits file.
     # Any passing processing step will update the result accordingly.

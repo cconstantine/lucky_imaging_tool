@@ -200,8 +200,9 @@ def process_fits_image(fits_filepath, context):
                     bayer_pattern = get_bayer_pattern(f_fits[0].header)
                     data = debayer(f_fits[0].data, bayer_pattern)
 
-                    # Convert to 32 bit integer for sep library in calculate fwhm
-                    data=np.array(data,dtype='int32')
+                    # Convert to float64 for sep library in calculate fwhm
+                    # int32 is also possible but is less compatible. There have been images which won't work if converted to int32.
+                    data=np.array(data,dtype='float64')
 
                     #Calculate fwhm
                     try:

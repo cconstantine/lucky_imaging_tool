@@ -24,10 +24,7 @@ def load_config_from_file():
 
 def create_config_from_arguments():
     print("In order to create the config answer the following questions.")
-    if test:
-        data = test_args()
-    else:
-        data = parse_args()
+    data = parse_args()
 
     data["cropped_folder"] = os.path.join(data["monitoring_folder"], "CroppedGoodImages")
     data["moved_unsupported_folder"] = os.path.join(data["monitoring_folder"], "MovedUnsupportedImages")
@@ -227,10 +224,6 @@ def process_fits_image(fits_filepath, context):
         traceback.print_exc()
         return context, result
 
-
-def test_args():
-    return float(0.7), float(0.7), str("C:\\Users\\Thomas\\Downloads\\lucky_imaging_tool\\MyWorkPythonAll"), float(10), str("n"), 10, float(4.63), 1000
-
 _INFO = '''
 ______                             __          _   _            _                              _   ___  
 |  _  \                           / _|        | | | |          | |                            | | |__ \ 
@@ -253,7 +246,6 @@ IMPORTANT: This script will overwrite any files from a previous session when the
 Ensure that the captured files have a different name by adding a prefix or add the timestamp to the filenames.")
 Pressing both CTRL and the 'C' character (CTRL+C) exits the applicaton. Prevents corruption in images.")
 '''
-test=False
 def init():
     set_process_priority()
 

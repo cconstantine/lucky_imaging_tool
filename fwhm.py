@@ -60,22 +60,23 @@ class Calculator:
         return len(objects), objects
 
     def get_objects_from_data(self, data, background):
-        # if self._determined_threshold == None:
+        if self._determined_threshold == None:
             objects = self.binary_search(self._search_func, data, self._TARGET_STARS_DETECTED, self._THRESHOLD, background)
-        # else:
-            # objects = self._search_func(data, self._determined_threshold, background)
+        else:
+            objects = self._search_func(data, self._determined_threshold, background)
 
-            return objects  
+        return objects  
 
     def fwhm(self, data):
         # Representation of spatially variable image background and noise.
         background = sep.Background(data)
 
         # evaluate background as 2-d array, same size as original image
-        background_image = background.back()
+        # Disabled, this is not required.
+        # background_image = background.back()
 
         # Get backround noise
-        background_rms = background.rms()
+        # background_rms = background.rms()
 
         # Subtract the background from an existing array. Like data = data - background, but avoids making a copy of the data.
         background.subfrom(data)
@@ -100,14 +101,14 @@ class Calculator:
 
         # print(fwhm)
         # exit()
-        pixel_scale = ((self._PIXEL_SIZE / self._FOCAL_LENGTH) * self._ARCSEC_CONSTANT)
+        # pixel_scale = ((self._PIXEL_SIZE / self._FOCAL_LENGTH) * self._ARCSEC_CONSTANT)
         # perfect_arcsec_per_px = 122 / self._FOCAL_LENGTH
         # image_scale = self._ARCSEC_CONSTANT * self._PIXEL_SIZE / self._FOCAL_LENGTH
 
         # Print a comparable string as test-my-scope
         mean, stdev = np.mean(fwhm), np.std(fwhm)
         final_fwhm = mean + stdev
-        final_arcsec = (mean + stdev) * pixel_scale
+        final_arcsec = (mean + stdev) * self._PIXEL_SIZE
         # print("FWHM: {} px / {} arcsec".format(final_fwhm, final_arcsec))
         return objects, final_fwhm, final_arcsec
 

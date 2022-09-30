@@ -57,6 +57,7 @@ def main(argv):
 
         while(exit_program == False): #Until SIGINT is received keep monitoring.
             files = common.get_fits_from_folder(context["monitoring_folder"])
+
             for file in files:
                 print(file)
                 pool.apply_async(common.process_fits_image, (file, context), callback=callback)
@@ -73,7 +74,8 @@ def main(argv):
 
             elapsed_time = time.time() - start_time
 
-            print("This took {} seconds for {} files. {}/file".format(elapsed_time, 500, elapsed_time/500))
+            if len(files) > 0:
+                print("This took {} seconds for {} files. {}/file".format(elapsed_time, len(files), elapsed_time/len(files)))
 
             # Sleep some time between work
             time.sleep(1)

@@ -11,6 +11,9 @@ import timeit
 
 class Calculator:
     def __init__(self, context):
+        # This value will be set after the 1st image has been processed.
+        self._determined_threshold = None
+
         self._BINARY_SEARCH_INITIAL_LOW = 0.0
         self.BINARY_SEARCH_INITIAL_HIGH = 500.0
 
@@ -31,16 +34,17 @@ class Calculator:
 
 
 
-    def binary_search(self, func, data, target, margin, background, kernel):
+    def binary_search(self, func, data, target, margin, background):
         low = self._BINARY_SEARCH_INITIAL_LOW
         high = self.BINARY_SEARCH_INITIAL_HIGH
 
         while True:
             cur = (low + high) / 2.0
 
-            a, result = func(data, cur, background, kernel)
+            a, result = func(data, cur, background)
             delta = target - a
             if abs(delta) <= margin:
+                self._determined_threshold = cur
                 return result
             elif delta < 0:
                 low = cur
@@ -50,27 +54,35 @@ class Calculator:
             if high - low < 0.2:
                 return None
 
-    def _search_func(self, data, threshold, bkg, kernel):
-        objects = sep.extract(data, threshold, err=bkg.globalrms, filter_type="matched", filter_kernel=kernel)
+    def _search_func(self, data, threshold, background):
+        objects = sep.extract(data, threshold, err=background.globalrms, filter_type="matched", filter_kernel=self._KERNEL)
+        # print(threshold)
         return len(objects), objects
+
+    def get_objects_from_data(self, data, background):
+        # if self._determined_threshold == None:
+            objects = self.binary_search(self._search_func, data, self._TARGET_STARS_DETECTED, self._THRESHOLD, background)
+        # else:
+            # objects = self._search_func(data, self._determined_threshold, background)
+
+            return objects  
 
     def fwhm(self, data):
         # Representation of spatially variable image background and noise.
-        bkg = sep.Background(data)
+        background = sep.Background(data)
 
         # evaluate background as 2-d array, same size as original image
-        bkg_image = bkg.back()
+        background_image = background.back()
 
         # Get backround noise
-        bkg_rms = bkg.rms()
+        background_rms = background.rms()
 
-        # Subtract the background from an existing array. Like data = data - bkg, but avoids making a copy of the data.
-        bkg.subfrom(data)
+        # Subtract the background from an existing array. Like data = data - background, but avoids making a copy of the data.
+        background.subfrom(data)
 
-
-        objects = self.binary_search(self._search_func, data, self._TARGET_STARS_DETECTED, self._THRESHOLD, bkg, self._KERNEL)
+        objects = self.get_objects_from_data(data, background)
         if objects is None:
-            return None
+            raise Exception("Cound not find any stars in image. Likely a bad image....")
 
         # Required in calculating the radius of the circles
         kronrad, krflag = sep.kron_radius(data, objects["x"], objects["y"], objects["a"], objects["b"], objects["theta"], 6.0)

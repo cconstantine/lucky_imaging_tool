@@ -11,6 +11,7 @@ import gc
 import numpy as np
 
 CONFIG_FILE="lucky_imaging.cnf.json"
+
 def save_config_to_file(data):
     with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
       f.write(json.dumps(data, ensure_ascii=False, indent=4))
@@ -97,19 +98,13 @@ def set_process_priority():
         PID.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
 
  
-def calculate_fwhm(context, data):
-    # Use calculator to get fwhm from image.
-    objects, fwhm_px, fwhm_arcsec = Calculator(context).fwhm(data)
-
-    return fwhm_px, fwhm_arcsec
-
 def does_FWHM_exceed_threshold(fwhm_arcsec, fwhm_arcsec_threshold):
     # If the fwhm is above the threshold it shall be removed.
     is_fwhm_above_threshold = fwhm_arcsec > fwhm_arcsec_threshold
-    # if is_fwhm_above_threshold:
-    #     print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm_arcsec, fwhm_arcsec_threshold))
-    # else:
-    #     print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm_arcsec, fwhm_arcsec_threshold))
+    if is_fwhm_above_threshold:
+        print("fwhm {:2.5f} > threshold {:2.5f}".format(fwhm_arcsec, fwhm_arcsec_threshold))
+    else:
+        print("fwhm {:2.5f} <= threshold {:2.5f}".format(fwhm_arcsec, fwhm_arcsec_threshold))
     return is_fwhm_above_threshold
 
 def crop_file(file, fits_data, fits_header, crop_factor_width, crop_factor_height, destination_folder):
@@ -203,13 +198,13 @@ def process_fits_image(fits_filepath, context):
 
                     #Calculate fwhm
                     try:
-                        result["fwhm"]["px"], result["fwhm"]["arcsec"]  = calculate_fwhm(context, data)
+                        _, result["fwhm"]["px"], result["fwhm"]["arcsec"]  = context["calculator"].fwhm(data)
                     except Exception as e:
                         print("\n\n\n\n\nERROR: {}".format(fits_filepath))
                         raise Exception(e)
 
                     # Determine if the quality is OK.
-                    result["rejected"] = does_FWHM_exceed_threshold(result["fwhm"]["arcsec"], context["fwhm_arcsec_threshold"])
+                    result["rejected"] = does_FWHM_exceed_threshold(result["fwhm"]["px"], context["fwhm_arcsec_threshold"])
 
                     # The file has been processed at least.
                     result["processed"] = True
@@ -249,7 +244,6 @@ Pressing both CTRL and the 'C' character (CTRL+C) exits the applicaton. Prevents
 def init():
     set_process_priority()
 
-
      # Parse arguments
     data = load_config_from_file()
  
@@ -273,6 +267,9 @@ def init():
     create_folder(data["moved_unsupported_folder"])
     create_folder(data["moved_originals_folder"])
     create_folder(data["moved_rejects_folder"])
+
+    # Create calculator object which calculates fwhm
+    data["calculator"] = Calculator(data)
 
      # Return parsed arguments.
     return data

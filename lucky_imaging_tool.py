@@ -23,15 +23,16 @@ def handler(signum, frame):
 signal.signal(signal.SIGINT, handler)
 
 def backup_or_remove_file(context, result):
+    print(result)
     if (result["processed"] == False) or (result["valid_fits_file"] == False):
         print("Unable to process file: {}. Please submit an error on https://github.com/cconstantine/lucky_imaging_tool/issues. Share the image.".format(result["fits_filepath"]))
         common.backup_file(result["fits_filepath"], context["moved_unsupported_folder"])
     elif result["rejected"]:
         common.backup_file(result["fits_filepath"], context["moved_rejects_folder"])
-    elif result["cropped"] and context["delete_uncropped_original"]:
+    elif result["cropped"] and context["delete_uncropped_original"] == "y":
         os.remove(result["fits_filepath"])
     else:
-        common.backup_file(result["fits_filepath"], context["moved_rejects_folder"])
+        common.backup_file(result["fits_filepath"], context["moved_originals_folder"])
 
 # Called before pool._cache is empty
 def callback(*args):

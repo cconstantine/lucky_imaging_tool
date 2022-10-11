@@ -27,7 +27,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pyinstaller --noconfirm --onefile --console --add-data "*.py:."  "lucky_imaging_tool.py"
-          gh release create ${{ github.ref }} ./dist/*
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.ref }}
+
 
       # - name: Fail on tag and module version mismatch
       #   if: (!endsWith(github.ref, steps.get_module_version.outputs.version))

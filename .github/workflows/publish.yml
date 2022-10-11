@@ -28,16 +28,6 @@ jobs:
           pip install -r requirements.txt
           pyinstaller --noconfirm --onefile --console --add-data "*.py:."  "lucky_imaging_tool.py"
 
-      #     pip install setuptools wheel twine
-
-      # - name: Get module version
-      #   id: get_module_version
-      #   shell: bash
-      #   run: |
-      #     version=$(python -c "from auto_py_to_exe import __version__ as v; print(v)")
-      #     echo "Module version: $version"
-      #     echo "::set-output name=version::$version"
-
       # - name: Fail on tag and module version mismatch
       #   if: (!endsWith(github.ref, steps.get_module_version.outputs.version))
       #   run: |
@@ -90,24 +80,24 @@ jobs:
       #     user: __token__
       #     password: ${{ secrets.pypi_password }}
 
-      # - name: Create release
-      #   id: create_release
-      #   uses: actions/create-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: v${{ steps.get_module_version.outputs.version }}
-      #     release_name: v${{ steps.get_module_version.outputs.version }}
-      #     draft: false
-      #     prerelease: false
-      #     body: ${{ steps.get_documented_changes.outputs.changes }}
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+#          tag_name: v${{ steps.get_module_version.outputs.version }}
+          release_name: v3
+          draft: false
+          prerelease: false
+#          body: ${{ steps.get_documented_changes.outputs.changes }}
 
-      # - name: Upload Binary to Release
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./dist/auto_py_to_exe-${{ steps.get_module_version.outputs.version }}-py2.py3-none-any.whl
-      #     asset_name: auto_py_to_exe-${{ steps.get_module_version.outputs.version }}-py2.py3-none-any.whl
-      #     asset_content_type: application/x-wheel+zip
+      - name: Upload Binary to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/lucky_imaging_tool
+          asset_name: luck_imaging_tool
+          asset_content_type: application/octet-stream

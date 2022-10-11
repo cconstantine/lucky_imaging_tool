@@ -2,8 +2,8 @@ name: Publish On Tag
 
 on:
   push:
-    branches:
-      - workflows
+    tags:
+      - v*
 
 jobs:
   publish:

@@ -28,7 +28,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pyinstaller --noconfirm --onefile --console --add-data "*.py:."  "lucky_imaging_tool.py"
+          pyinstaller --noconfirm --onefile --console --add-data "fwhm.py:." --add-data "crop.py:." --add-data "common.py:."  "lucky_imaging_tool.py"
 
       - name: Release 
         env:

@@ -86,8 +86,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v3_test
-          release_name: v3_test
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
 #          body: ${{ steps.get_documented_changes.outputs.changes }}
@@ -99,5 +99,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/lucky_imaging_tool
-          asset_name: luck_imaging_tool
+          asset_name: ${{ matrix.os }} luck_imaging_tool
           asset_content_type: application/octet-stream

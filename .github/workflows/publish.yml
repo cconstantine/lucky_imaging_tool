@@ -8,7 +8,7 @@ on:
 jobs:
   publish:
 #    needs: [initial-check]
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]

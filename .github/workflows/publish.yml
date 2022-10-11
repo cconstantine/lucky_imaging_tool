@@ -22,10 +22,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install executable
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pyinstaller --noconfirm --onefile --console --add-data "*.py:."  "lucky_imaging_tool.py"
+
       #     pip install setuptools wheel twine
 
       # - name: Get module version

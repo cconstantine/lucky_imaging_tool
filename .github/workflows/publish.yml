@@ -8,19 +8,20 @@ on:
 jobs:
   publish:
 #    needs: [initial-check]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ["3.10"]
+    runs-on: windows-latest #${{ matrix.os }}
+    # strategy:
+    #   matrix:
+    #     os: [ubuntu-latest, macos-latest]
+    #     python-version: ["3.10"]
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: ilammy/msvc-dev-cmd@v1.4.1
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.10"
+
+      - uses: ilammy/msvc-dev-cmd@v1.4.1
 
       - name: Build executable
         run: |
@@ -28,11 +29,12 @@ jobs:
           pip install -r requirements.txt
           pyinstaller --noconfirm --onefile --console --add-data "*.py:."  "lucky_imaging_tool.py"
 
-      - name: Release
+      - name: Release 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ github.ref }}
+          gh release create  ${{ github.ref }} -t "Lucky Imaging Tool ${{ github.ref }}" || true
+          gh release upload ${{ github.ref }} "dist/lucky_imaging_tool.exe"
 
 
       # - name: Fail on tag and module version mismatch

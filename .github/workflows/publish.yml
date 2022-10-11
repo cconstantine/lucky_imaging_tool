@@ -5,6 +5,8 @@ on:
     tags:
       - v*
 
+
+jobs:
   initial-checks:
     runs-on: ubuntu-latest
 
@@ -12,7 +14,7 @@ on:
       - name: Only allow tags on main to be published
         if: github.event.base_ref != 'refs/heads/main'
         run: exit 1
-jobs:
+  
   publish:
     needs: [initial-checks]
     runs-on: windows-latest

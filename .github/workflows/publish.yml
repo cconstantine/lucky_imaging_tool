@@ -98,6 +98,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/lucky_imaging_tool*
+          asset_path: ./dist/*
           asset_name: ${{ matrix.os }} luck_imaging_tool
           asset_content_type: application/octet-stream

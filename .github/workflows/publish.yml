@@ -27,7 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pyinstaller --noconfirm --onefile --console --add-data "*.py:."  "lucky_imaging_tool.py"
-          gh release --help 
+          gh release create ${{ github.ref }} ./dist/*
 
       # - name: Fail on tag and module version mismatch
       #   if: (!endsWith(github.ref, steps.get_module_version.outputs.version))
@@ -81,24 +81,24 @@ jobs:
       #     user: __token__
       #     password: ${{ secrets.pypi_password }}
 
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-#          body: ${{ steps.get_documented_changes.outputs.changes }}
+#       - name: Create release
+#         id: create_release
+#         uses: actions/create-release@v1
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         with:
+#           tag_name: ${{ github.ref }}
+#           release_name: Release ${{ github.ref }}
+#           draft: false
+#           prerelease: false
+# #          body: ${{ steps.get_documented_changes.outputs.changes }}
 
-      - name: Upload Binary to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/lucky_imaging_tool
-          asset_name: ${{ matrix.os }} luck_imaging_tool
-          asset_content_type: application/octet-stream
+#       - name: Upload Binary to Release
+#         uses: actions/upload-release-asset@v1
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         with:
+#           upload_url: ${{ steps.create_release.outputs.upload_url }}
+#           asset_path: ./dist/lucky_imaging_tool
+#           asset_name: ${{ matrix.os }} luck_imaging_tool
+#           asset_content_type: application/octet-stream

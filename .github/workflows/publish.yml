@@ -5,25 +5,24 @@ on:
     tags:
       - v*
 
+  initial-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Only allow tags on main to be published
+        if: github.event.base_ref != 'refs/heads/main'
+        run: exit 1
 jobs:
   publish:
-#    needs: [initial-check]
-    runs-on: windows-latest #${{ matrix.os }}
-    # strategy:
-    #   matrix:
-    #     os: [ubuntu-latest, macos-latest]
-    #     python-version: ["3.10"]
+    needs: [initial-check]
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
-
         with:
           python-version: "3.10"
-
-      - uses: ilammy/msvc-dev-cmd@v1.4.1
-      - uses: msys2/setup-msys2@v2
       - name: Build executable
         run: |
           python -m pip install --upgrade pip
@@ -34,79 +33,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create  ${{ github.ref }} -t "Lucky Imaging Tool" "dist/lucky_imaging_tool.exe"
-
-
-      # - name: Fail on tag and module version mismatch
-      #   if: (!endsWith(github.ref, steps.get_module_version.outputs.version))
-      #   run: |
-      #     echo "Ref that triggered release: ${{ github.ref }}"
-      #     echo "Current module version: ${{ steps.get_module_version.outputs.version }}"
-      #     exit 1
-
-      # - name: Get documented version changes from CHANGELOG.md
-      #   id: get_documented_changes
-      #   shell: bash
-      #   run: |
-      #     changes="$(
-      #       found_version=0; \
-      #       while IFS= read -r line; do \
-      #         if [[ $found_version == 0 ]]; then\
-      #           if [[ $line == *"${{ steps.get_module_version.outputs.version }}"* && $line == "##"* ]]; then \
-      #             found_version=1; \
-      #           fi \
-      #         else \
-      #         if [[ $line == "##"* ]]; then \
-      #           found_version=0; \
-      #         else \
-      #           echo "$line"; \
-      #         fi \
-      #         fi \
-      #       done < CHANGELOG.md
-      #     )"
-
-      #     echo "Documented changes:"
-      #     echo "$changes"
-      #     echo ""
-
-      #     if [[ $changes == "" ]]; then \
-      #       echo "Changes have not been documented"; \
-      #       exit 1; \
-      #     else \
-      #       changes="${changes//'%'/'%25'}"; \
-      #       changes="${changes//$'\n'/'%0A'}"; \
-      #       changes="${changes//$'\r'/'%0D'}"; \
-      #       echo "::set-output name=changes::$changes"; \
-      #     fi
-
-      # - name: Build distribution
-      #   run: |
-      #     python setup.py sdist bdist_wheel --universal
-
-      # - name: Publish package
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #     user: __token__
-      #     password: ${{ secrets.pypi_password }}
-
-#       - name: Create release
-#         id: create_release
-#         uses: actions/create-release@v1
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         with:
-#           tag_name: ${{ github.ref }}
-#           release_name: Release ${{ github.ref }}
-#           draft: false
-#           prerelease: false
-# #          body: ${{ steps.get_documented_changes.outputs.changes }}
-
-#       - name: Upload Binary to Release
-#         uses: actions/upload-release-asset@v1
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         with:
-#           upload_url: ${{ steps.create_release.outputs.upload_url }}
-#           asset_path: ./dist/lucky_imaging_tool
-#           asset_name: ${{ matrix.os }} luck_imaging_tool
-#           asset_content_type: application/octet-stream
+          gh release create  ${{ github.ref }} -t "Lucky Imaging Tool ${{ github.ref_name }}" "dist/lucky_imaging_tool.exe"

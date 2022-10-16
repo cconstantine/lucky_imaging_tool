@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from csv import DictWriter
 df=pd.DataFrame({"FWHMARCSEC":[], "FWHMPIXELS":[]})
-df.to_csv('catalog.csv')
+df.to_csv('catalog.csv', index=False)
 CONFIG_FILE="lucky_imaging.cnf.json"
 
 def save_config_to_file(data):
@@ -203,7 +203,7 @@ def process_fits_image(fits_filepath, context):
                     try:
                         _, result["fwhm"]["px"], result["fwhm"]["arcsec"]  = context["calculator"].fwhm(data)
                         fields=['FWHMARCSEC', 'FWHMPIXELS']
-                        dict={"FWHMARCSEC":result['fwhm']['arcsec'], 'FWHMPIXELS':result['fwhm']['px']}
+                        dict={"FWHMARCSEC":round(result['fwhm']['arcsec'],1), 'FWHMPIXELS':round(result['fwhm']['px'],1)}
                         with open("catalog.csv", 'a') as f:
                             dictwriter_object=DictWriter(f,fieldnames=fields)
                             dictwriter_object.writerow(dict)
@@ -213,7 +213,7 @@ def process_fits_image(fits_filepath, context):
                         raise Exception(e)
 
                     # Determine if the quality is OK.
-                    result["rejected"] = does_FWHM_exceed_threshold(result["fwhm"]["px"], context["fwhm_arcsec_threshold"])
+                    result["rejected"] = does_FWHM_exceed_threshold(result["fwhm"]["arcsec"], context["fwhm_arcsec_threshold"])
 
                     # The file has been processed at least.
                     result["processed"] = True

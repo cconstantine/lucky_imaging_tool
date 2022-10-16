@@ -9,7 +9,10 @@ from astropy.io import fits
 import traceback
 import gc
 import numpy as np
-
+import pandas as pd
+from csv import DictWriter
+df=pd.DataFrame(['FWHMARCSEC','FWHMPIXELS'])
+df.to_csv('catalog.csv')
 CONFIG_FILE="lucky_imaging.cnf.json"
 
 def save_config_to_file(data):
@@ -97,7 +100,7 @@ def set_process_priority():
         # Set cpu execution priority
         PID.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
 
- 
+
 def does_FWHM_exceed_threshold(fwhm_arcsec, fwhm_arcsec_threshold):
     # If the fwhm is above the threshold it shall be removed.
     is_fwhm_above_threshold = fwhm_arcsec > fwhm_arcsec_threshold
@@ -199,6 +202,12 @@ def process_fits_image(fits_filepath, context):
                     #Calculate fwhm
                     try:
                         _, result["fwhm"]["px"], result["fwhm"]["arcsec"]  = context["calculator"].fwhm(data)
+                        fields=['FWHMARCSEC', 'FWHMPIXELS']
+                        dict={"FWHMARCSEC":result['fwhm']['arcsec'], 'FWHMPIXELS':result['fwhm']['px']}
+                        with open("catalog.csv", 'a') as f:
+                            dictwriter_object=DictWriter(f,fieldnames=fields)
+                            dictwriter_object.writerow(dict)
+                            f.close()
                     except Exception as e:
                         print("\n\n\n\n\nERROR: {}".format(fits_filepath))
                         raise Exception(e)
@@ -220,22 +229,22 @@ def process_fits_image(fits_filepath, context):
         return context, result
 
 _INFO = '''
-______                             __          _   _            _                              _   ___  
-|  _  \                           / _|        | | | |          | |                            | | |__ \ 
+______                             __          _   _            _                              _   ___
+|  _  \                           / _|        | | | |          | |                            | | |__ \
 | | | |___    _   _  ___  _   _  | |_ ___  ___| | | |_   _  ___| | ___   _   _ __  _   _ _ __ | | __ ) |
-| | | / _ \  | | | |/ _ \| | | | |  _/ _ \/ _ \ | | | | | |/ __| |/ / | | | | '_ \| | | | '_ \| |/ // / 
-| |/ / (_) | | |_| | (_) | |_| | | ||  __/  __/ | | | |_| | (__|   <| |_| | | |_) | |_| | | | |   <|_|  
-|___/ \___/   \__, |\___/ \__,_| |_| \___|\___|_| |_|\__,_|\___|_|\_\\__, | | .__/ \__,_|_| |_|_|\_(_)  
-               __/ |                                                  __/ | | |                         
-              |___/                                                  |___/  |_|                         
- _    _      _ _              _                    ___                                                  
-| |  | |    | | |            | |                  |__ \                                                 
-| |  | | ___| | |          __| | ___    _   _  __ _  ) |                                                
-| |/\| |/ _ \ | |         / _` |/ _ \  | | | |/ _` |/ /                                                 
-\  /\  /  __/ | |_ _ _   | (_| | (_) | | |_| | (_| |_|                                                  
- \/  \/ \___|_|_(_|_|_)   \__,_|\___/   \__, |\__,_(_)                                                  
-                                         __/ |                                                          
-                                        |___/                                                           
+| | | / _ \  | | | |/ _ \| | | | |  _/ _ \/ _ \ | | | | | |/ __| |/ / | | | | '_ \| | | | '_ \| |/ // /
+| |/ / (_) | | |_| | (_) | |_| | | ||  __/  __/ | | | |_| | (__|   <| |_| | | |_) | |_| | | | |   <|_|
+|___/ \___/   \__, |\___/ \__,_| |_| \___|\___|_| |_|\__,_|\___|_|\_\\__, | | .__/ \__,_|_| |_|_|\_(_)
+               __/ |                                                  __/ | | |
+              |___/                                                  |___/  |_|
+ _    _      _ _              _                    ___
+| |  | |    | | |            | |                  |__ \
+| |  | | ___| | |          __| | ___    _   _  __ _  ) |
+| |/\| |/ _ \ | |         / _` |/ _ \  | | | |/ _` |/ /
+\  /\  /  __/ | |_ _ _   | (_| | (_) | | |_| | (_| |_|
+ \/  \/ \___|_|_(_|_|_)   \__,_|\___/   \__, |\__,_(_)
+                                         __/ |
+                                        |___/
 
 IMPORTANT: This script will overwrite any files from a previous session when the same capture folder is used and new images match those of a previous session.
 Ensure that the captured files have a different name by adding a prefix or add the timestamp to the filenames.")
@@ -246,7 +255,7 @@ def init():
 
      # Parse arguments
     data = load_config_from_file()
- 
+
     # Set console size.
     os.system("mode con cols=120 lines=50")
 
@@ -261,7 +270,7 @@ def init():
     else:
         print("No config file found.. Creating one.")
         data = create_config_from_arguments()
- 
+
     # Create folders for cropped and moved images according to their state.
     create_folder(data["cropped_folder"])
     create_folder(data["moved_unsupported_folder"])

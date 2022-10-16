@@ -11,7 +11,7 @@ import gc
 import numpy as np
 import pandas as pd
 from csv import DictWriter
-df=pd.DataFrame(['FWHMARCSEC','FWHMPIXELS'])
+df=pd.DataFrame({"FWHMARCSEC":[], "FWHMPIXELS":[]})
 df.to_csv('catalog.csv')
 CONFIG_FILE="lucky_imaging.cnf.json"
 

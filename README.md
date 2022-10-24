@@ -1,3 +1,5 @@
+**The new Versions are BROKEN, will get new Version up soon, current release: V3.19**
+
 Anything that has FWHM is a WIP, we are trying to develop this independently. Moving away from NINA.
 
 FWHM is no longer a WIP, we have implemented it, now in the testing stage. Once tested we will release as an exe file. 

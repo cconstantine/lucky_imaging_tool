@@ -65,7 +65,7 @@ class Calculator:
         else:
             objects = self._search_func(data, self._determined_threshold, background)
 
-        return objects  
+        return objects
 
     def fwhm(self, data):
         # Representation of spatially variable image background and noise.
@@ -108,7 +108,8 @@ class Calculator:
         # Print a comparable string as test-my-scope
         mean, stdev = np.mean(fwhm), np.std(fwhm)
         final_fwhm = mean + stdev
-        final_arcsec = (mean + stdev) * self._PIXEL_SIZE
+        #fwhmPix*((pixelsize/fl)*206.3)
+        final_arcsec = ((final_fwhm *(self._PIXEL_SIZE/self._FOCAL_LENGTH))*206.2648)
         # print("FWHM: {} px / {} arcsec".format(final_fwhm, final_arcsec))
         return objects, final_fwhm, final_arcsec
 

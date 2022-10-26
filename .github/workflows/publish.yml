@@ -7,11 +7,7 @@ on:
 
 
 jobs:
-  initial-checks:
-    runs-on: ubuntu-latest
-  
   publish:
-    needs: [initial-checks]
     runs-on: windows-latest
 
     steps:

@@ -9,11 +9,6 @@ on:
 jobs:
   initial-checks:
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Only allow tags on main to be published
-        if: github.event.base_ref != 'refs/heads/main'
-        run: exit 1
   
   publish:
     needs: [initial-checks]

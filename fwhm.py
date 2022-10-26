@@ -83,7 +83,7 @@ class Calculator:
 
         objects = self.get_objects_from_data(data, background)
         if objects is None:
-            raise Exception("Cound not find any stars in image. Likely a bad image....") #h
+            raise Exception("Cound not find any stars in image. Likely a bad image....")
 
         # Required in calculating the radius of the circles
         kronrad, krflag = sep.kron_radius(data, objects["x"], objects["y"], objects["a"], objects["b"], objects["theta"], 6.0)
